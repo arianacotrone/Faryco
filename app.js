@@ -9,7 +9,7 @@ const WHATSAPP_NUMBER = "5491100000000";
 // ID de la Google Sheet que funciona como "base de datos" del catálogo.
 // Se saca de la URL de la hoja: https://docs.google.com/spreadsheets/d/ESTE_ES_EL_ID/edit
 // Dejalo vacío ("") para que la página use solo los datos embebidos en products.fallback.js.
-const SHEET_ID = "1UC3R2aKW-p5EsGKgd-M5a-hQEJsrQsOb6Mx9vKK17pI";
+const SHEET_ID = "1SZ-BGdFwxtwDTULrEpOQ6kiL6otFt3skZdBnxjmCl6Q";
 
 // Nombre de la pestaña (tab) dentro de esa Google Sheet que tiene la tabla de productos.
 const SHEET_NAME = "productos";
