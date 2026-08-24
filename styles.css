@@ -117,6 +117,31 @@ button{font-family:inherit;}
 .search input:focus{outline:2px solid var(--accent); outline-offset:1px;}
 .search svg{position:absolute; left:10px; top:50%; transform:translateY(-50%); opacity:0.55;}
 
+/* ---------- botón carrito ---------- */
+.cart-btn{
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+  width:38px; height:38px; flex:none;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:8px;
+  color:var(--ink);
+  cursor:pointer;
+  transition:border-color 0.15s;
+}
+.cart-btn:hover{border-color:var(--accent);}
+.cart-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.cart-count{
+  position:absolute; top:-6px; right:-6px;
+  background:var(--accent); color:var(--accent-ink);
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10.5px; font-weight:600;
+  min-width:17px; height:17px;
+  border-radius:999px;
+  display:flex; align-items:center; justify-content:center;
+  padding:0 3px;
+}
+
 /* ---------- hero ---------- */
 .hero{
   max-width:1180px; margin:0 auto;
@@ -175,6 +200,27 @@ button{font-family:inherit;}
 .count{
   margin-left:auto; font-size:12.5px; color:var(--muted);
   font-family:'IBM Plex Mono', monospace;
+}
+
+/* ---------- submenú (talle / color) ---------- */
+.submenu{
+  max-width:1180px; margin:0 auto;
+  padding:0 20px 18px;
+  display:flex; flex-direction:column; gap:10px;
+}
+.submenu[hidden]{display:none;}
+.submenu-row{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+}
+.submenu-label{
+  font-size:11px; text-transform:uppercase; letter-spacing:0.06em;
+  color:var(--muted); font-weight:600; flex:none; min-width:44px;
+}
+.submenu-chips{
+  display:flex; gap:6px; flex-wrap:wrap;
+}
+.chip-sm{
+  padding:5px 11px; font-size:12px;
 }
 
 /* ---------- grid ---------- */
@@ -274,6 +320,246 @@ button{font-family:inherit;}
 .wa-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 .wa-btn svg{width:15px; height:15px; flex:none;}
 
+/* ---------- controles de compra en la tarjeta ---------- */
+.card-controls{
+  display:flex; align-items:center; gap:8px;
+}
+.talle-select{
+  flex:1 1 auto; min-width:0;
+  background:var(--surface);
+  color:var(--ink);
+  border:1px solid var(--line);
+  border-radius:7px;
+  padding:8px 8px;
+  font-size:13px; font-family:inherit;
+}
+.talle-select:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+.talle-select.input-error{
+  border-color:var(--urgency); animation: shake-error 0.3s;
+}
+@keyframes shake-error{
+  0%,100%{transform:translateX(0);} 25%{transform:translateX(-3px);} 75%{transform:translateX(3px);}
+}
+.qty-stepper{
+  display:flex; align-items:center; gap:0;
+  border:1px solid var(--line); border-radius:7px;
+  flex:none; overflow:hidden;
+}
+.qty-stepper .qty-btn{
+  width:28px; height:32px;
+  border:none; background:var(--chip-bg); color:var(--ink);
+  font-size:15px; line-height:1; cursor:pointer;
+}
+.qty-stepper .qty-btn:hover{background:var(--accent); color:var(--accent-ink);}
+.qty-stepper .qty-value{
+  width:26px; text-align:center;
+  font-family:'IBM Plex Mono', monospace; font-size:13px;
+}
+.qty-stepper.small .qty-btn{width:22px; height:24px; font-size:13px;}
+.qty-stepper.small .qty-value{width:20px; font-size:11.5px;}
+.add-cart-btn{
+  width:100%;
+  background:var(--accent); color:var(--accent-ink);
+  border:none; border-radius:8px;
+  padding:10px 12px;
+  font-size:13.5px; font-weight:600;
+  cursor:pointer;
+  transition:opacity 0.15s, transform 0.1s;
+}
+.add-cart-btn:hover{opacity:0.9;}
+.add-cart-btn:active{transform:scale(0.98);}
+.add-cart-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.add-cart-btn.added{background:#1f8a3d;}
+.wa-link-small{
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  background:none; color:var(--muted);
+  border:none;
+  padding:2px 4px;
+  font-size:12px; font-weight:500;
+  text-decoration:none;
+  cursor:pointer;
+}
+.wa-link-small:hover{color:var(--ink);}
+.wa-link-small svg{width:13px; height:13px; flex:none;}
+
+/* ---------- carrito: overlay + drawer ---------- */
+body.cart-open-lock{overflow:hidden;}
+.cart-overlay{
+  position:fixed; inset:0; z-index:40;
+  background:rgba(10,12,14,0.55);
+  backdrop-filter:blur(1px);
+  opacity:0; pointer-events:none;
+  transition:opacity 0.25s ease;
+}
+.cart-overlay.open{opacity:1; pointer-events:auto;}
+.cart-drawer{
+  position:fixed; top:0; right:0; bottom:0; z-index:41;
+  width:min(430px, 100vw);
+  background:var(--surface);
+  border-left:1px solid var(--line);
+  box-shadow:-8px 0 32px -8px rgba(15,17,21,0.28), var(--shadow);
+  display:flex; flex-direction:column;
+  transform:translateX(100%);
+  transition:transform 0.32s cubic-bezier(.2,.9,.3,1);
+}
+.cart-drawer.open{transform:translateX(0);}
+.cart-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 20px; border-bottom:1px solid var(--line); flex:none;
+  background:var(--surface);
+}
+.cart-header h2{margin:0; font-size:21px; display:flex; align-items:baseline; gap:6px;}
+.cart-header-count{font-family:'IBM Plex Mono', monospace; font-size:14px; font-weight:400; color:var(--muted);}
+.cart-close{
+  display:flex; align-items:center; justify-content:center;
+  width:32px; height:32px;
+  background:var(--chip-bg); border:none; border-radius:999px;
+  color:var(--ink); cursor:pointer;
+  transition:background 0.15s, color 0.15s, transform 0.15s;
+}
+.cart-close:hover{background:var(--accent); color:var(--accent-ink); transform:rotate(90deg);}
+
+/* ---- estado vacío ---- */
+.cart-empty{
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+  color:var(--muted); font-size:13.5px; line-height:1.5;
+  padding:56px 24px; text-align:center;
+}
+.cart-empty[hidden]{display:none;}
+.cart-empty svg{opacity:0.35;}
+.cart-empty p{margin:0;}
+
+.cart-body{
+  flex:1 1 auto; overflow-y:auto;
+  padding:6px 20px 18px;
+  display:flex; flex-direction:column; gap:6px;
+}
+.cart-items{
+  display:flex; flex-direction:column;
+}
+
+/* ---- ítem del carrito, con miniatura ---- */
+.cart-item{
+  display:grid;
+  grid-template-columns:64px 1fr;
+  gap:0 12px;
+  padding:14px 0;
+  border-bottom:1px solid var(--line);
+}
+.cart-items .cart-item:first-child{padding-top:12px;}
+.cart-item-thumb{
+  grid-row:1 / 3;
+  width:64px; height:76px; flex:none;
+  border-radius:9px;
+  background-color:var(--chip-bg);
+  background-size:cover; background-position:center;
+  border:1px solid var(--line);
+}
+.cart-item-thumb-ph{
+  display:flex; align-items:center; justify-content:center;
+  color:#fff;
+}
+.cart-item-thumb-ph svg{width:44%; height:44%; opacity:0.9;}
+.cart-item-main{
+  display:flex; flex-direction:column; gap:10px; min-width:0;
+}
+.cart-item-top{
+  display:flex; align-items:flex-start; justify-content:space-between; gap:8px;
+}
+.cart-item-info{min-width:0;}
+.cart-item-name{
+  font-size:14px; font-weight:600; line-height:1.3;
+  overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+}
+.cart-item-meta{font-size:11.5px; color:var(--muted); margin-top:3px;}
+.cart-item-unit{font-family:'IBM Plex Mono', monospace;}
+.cart-remove{
+  flex:none;
+  display:flex; align-items:center; justify-content:center;
+  width:26px; height:26px;
+  background:none; border:none; border-radius:6px;
+  color:var(--muted); cursor:pointer;
+  transition:background 0.15s, color 0.15s;
+}
+.cart-remove svg{width:15px; height:15px;}
+.cart-remove:hover{background:var(--urgency-bg); color:var(--urgency);}
+.cart-item-bottom{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+}
+.cart-item-subtotal{
+  font-family:'IBM Plex Mono', monospace; font-size:14px; font-weight:600;
+  color:var(--ink);
+}
+
+/* ---- datos de envío ---- */
+.cart-ship{
+  margin-top:8px;
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:16px;
+  display:flex; flex-direction:column; gap:12px;
+}
+.cart-ship[hidden]{display:none;}
+.cart-ship h3{
+  margin:0; font-size:12px; font-weight:600; font-family:'Work Sans', sans-serif;
+  text-transform:uppercase; letter-spacing:0.06em; color:var(--muted);
+  display:flex; align-items:center; gap:7px;
+}
+.cart-ship h3 svg{flex:none; color:var(--accent);}
+.cart-field{
+  display:flex; flex-direction:column; gap:5px;
+  font-size:12px; color:var(--muted); font-weight:500;
+}
+.cart-field input, .cart-field select{
+  background:var(--surface);
+  color:var(--ink);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:10px 11px;
+  font-size:13.5px; font-family:inherit;
+  transition:border-color 0.15s;
+}
+.cart-field input:hover, .cart-field select:hover{border-color:var(--muted);}
+.cart-field input:focus-visible, .cart-field select:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+.ship-result{
+  font-size:12px; color:var(--muted); min-height:1em; line-height:1.4;
+}
+
+/* ---- footer / totales / checkout ---- */
+.cart-footer{
+  flex:none;
+  border-top:1px solid var(--line);
+  padding:16px 20px 20px;
+  display:flex; flex-direction:column; gap:12px;
+  background:var(--surface);
+  box-shadow:0 -8px 20px -12px rgba(15,17,21,0.15);
+}
+.cart-footer[hidden]{display:none;}
+.cart-totals{display:flex; flex-direction:column; gap:6px;}
+.cart-total-row{
+  display:flex; align-items:baseline; justify-content:space-between;
+  font-size:13px; color:var(--muted);
+  font-family:'IBM Plex Mono', monospace;
+}
+.cart-total-final{
+  font-size:19px; font-weight:600; color:var(--ink);
+  font-family:'Work Sans', sans-serif;
+  padding-top:10px; margin-top:2px; border-top:1px dashed var(--line);
+}
+.cart-total-final span:last-child{color:var(--accent); font-family:'IBM Plex Mono', monospace;}
+.ship-disclaimer{
+  font-size:10.5px; color:var(--muted); margin:0; line-height:1.4; text-align:center;
+}
+.wa-btn-checkout{
+  width:100%;
+  background:#25D366; color:#fff;
+  font-size:14.5px; padding:13px 12px;
+  box-shadow:0 6px 16px -4px rgba(37,211,102,0.45);
+}
+.wa-btn-checkout:hover{opacity:1; background:#20bd5a; transform:translateY(-1px);}
+.wa-btn-checkout svg{width:17px; height:17px;}
+
 /* ---------- AJUSTES PARA CELULAR (Dispositivos Móviles) ---------- */
 @media (max-width: 767px) {
   .grid {
@@ -309,6 +595,28 @@ button{font-family:inherit;}
   .wa-btn svg {
     width: 13px;
     height: 13px;
+  }
+
+  .submenu-label {
+    min-width: 38px;
+    font-size: 10px;
+  }
+
+  .chip-sm {
+    padding: 4px 9px;
+    font-size: 11px;
+  }
+
+  .card-controls {
+    flex-wrap: wrap;
+  }
+
+  .talle-select {
+    flex-basis: 100%;
+  }
+
+  .cart-drawer {
+    width: 100vw;
   }
 }
 
