@@ -314,10 +314,11 @@ function cardHTML(p){
             <option value="">Talle</option>
             ${sizeOptions}
           </select>
+
           <div class="qty-stepper">
-            <button type="button" class="qty-btn qty-minus" aria-label="Restar">−</button>
-            <span class="qty-value">1</span>
-            <button type="button" class="qty-btn qty-plus" aria-label="Sumar">+</button>
+              <button type="button" class="qty-btn qty-minus" aria-label="Restar" disabled>−</button>
+              <span class="qty-value text-muted">1</span>
+              <button type="button" class="qty-btn qty-plus" aria-label="Sumar" disabled>+</button>
           </div>
         </div>
         <button type="button" class="add-cart-btn" data-id="${p.id}">Agregar al carrito</button>
@@ -618,11 +619,20 @@ document.getElementById("grid").addEventListener("click", (e) => {
     qtyVal.textContent = v;
   }
 });
+
 document.getElementById("grid").addEventListener("change", (e) => {
   if (e.target.classList.contains("talle-select")){
     const card = e.target.closest(".card");
+    const hasValue = Boolean(e.target.value);
+    
+    // Resetear valor a 1
     card.querySelector(".qty-value").textContent = "1";
     e.target.classList.remove("input-error");
+
+    // Habilitar / Deshabilitar botones de cantidad
+    card.querySelectorAll(".qty-btn").forEach(btn => {
+      btn.disabled = !hasValue;
+    });
   }
 });
 
