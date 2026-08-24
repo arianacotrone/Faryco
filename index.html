@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Far & Co. — Liquidación</title>
-<meta name="description" content="Catálogo de liquidación de stock ex Farenheite. Consultá por WhatsApp.">
+<title>Farenheite & Co. — Liquidación</title>
+<meta name="description" content="Catálogo de liquidación de stock ex Farenheite Calzada. Consultá por WhatsApp.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -16,29 +16,80 @@
   <div class="topbar-inner">
     <div class="wordmark">
       <span class="brand">FAR &amp; CO.</span>
-      <span class="sub">antes Farenheite · liquidación de stock</span>
+      <span class="sub">antes Farenheite Calzada · liquidación de stock</span>
     </div>
     <div class="search">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input id="searchInput" type="text" placeholder="Buscar producto o color…" autocomplete="off">
     </div>
+    <button class="cart-btn" id="cartBtn" aria-label="Ver carrito" aria-haspopup="dialog">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1.4"/><circle cx="18" cy="21" r="1.4"/><path d="M2.5 3h2.4l2.2 12.1a2 2 0 0 0 2 1.6h8.3a2 2 0 0 0 2-1.6L21 8H6.2"/></svg>
+      <span class="cart-count" id="cartCount" hidden>0</span>
+    </button>
   </div>
 </div>
 
 <div class="hero">
   <div>
     <h1>Liquidación<br><span class="accent">total.</span> Última vez.</h1>
-    <p>Cerramos el local, no la relación. Todo el stock remanente de Farenheite con descuento real hasta agotar — consultá por WhatsApp y coordinamos envío o retiro.</p>
+    <p>Cerramos el local, no la relación. Todo el stock remanente de <a href= "https://www.instagram.com/farenheite_calzada/">Farenheite Calzada</a> con descuento real hasta agotar — armá tu pedido acá y lo cerramos por WhatsApp.</p>
   </div>
   <div class="stat-row" id="statRow"></div>
 </div>
 
 <div class="filters" id="filterRow"></div>
+<div class="submenu" id="submenu"></div>
 
 <div class="grid" id="grid"></div>
 <div class="empty" id="emptyState" style="display:none;">No encontramos productos con ese filtro. Probá con otra búsqueda o categoría.</div>
 
-<footer>Far & Co. — ex Farenheite Calzada · <span id="ig">@farenheite_calzada</span> · Precios y disponibilidad sujetos a stock real al momento de la consulta.</footer>
+<footer>Far & Co. — ex Farenheite Calzada · <span id="ig">@farenheite_calzada</span> · Envío gratis a zona sur (Almirante Brown) en compras desde $100.000 · Precios y disponibilidad sujetos a stock real al momento de la consulta.</footer>
+
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-label="Carrito de compras">
+  <div class="cart-header">
+    <h2>Tu pedido</h2>
+    <button class="cart-close" id="cartClose" aria-label="Cerrar carrito">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+    </button>
+  </div>
+
+  <div class="cart-body" id="cartBody">
+    <div class="cart-empty" id="cartEmptyMsg">Todavía no agregaste productos. Elegí un talle en cualquier prenda y tocá "Agregar al carrito".</div>
+    <div class="cart-items" id="cartItems"></div>
+
+    <div class="cart-ship" id="cartShipSection" hidden>
+      <h3>Datos de envío</h3>
+      <label class="cart-field">
+        Nombre y apellido
+        <input type="text" id="shipNombre" placeholder="Ej: Juana Pérez" autocomplete="name">
+      </label>
+      <label class="cart-field">
+        Teléfono de contacto
+        <input type="tel" id="shipTelefono" placeholder="Ej: 11 2233-4455" autocomplete="tel">
+      </label>
+      <label class="cart-field">
+        Calle y número
+        <input type="text" id="shipDireccion" placeholder="Ej: Av. Rivadavia 1234" autocomplete="street-address">
+      </label>
+      <label class="cart-field">
+        Localidad
+        <select id="shipLocalidad"></select>
+      </label>
+      <div class="ship-result" id="shipResult"></div>
+    </div>
+  </div>
+
+  <div class="cart-footer" id="cartFooter" hidden>
+    <div class="cart-totals">
+      <div class="cart-total-row"><span>Subtotal</span><span id="cartSubtotal">$0</span></div>
+      <div class="cart-total-row"><span>Envío</span><span id="cartShippingLine">A calcular</span></div>
+      <div class="cart-total-row cart-total-final"><span>Total</span><span id="cartTotal">$0</span></div>
+    </div>
+    <p class="ship-disclaimer">Envío estimado según zona — el total final se confirma por WhatsApp antes de despachar.</p>
+    <a class="wa-btn wa-btn-checkout" id="checkoutBtn" href="#" target="_blank" rel="noopener">Finalizar pedido por WhatsApp</a>
+  </div>
+</aside>
 
 <script src="products.fallback.js"></script>
 <script src="app.js"></script>
