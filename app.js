@@ -321,7 +321,7 @@ function cardHTML(p){
           </div>
         </div>
         <button type="button" class="add-cart-btn" data-id="${p.id}">Agregar al carrito</button>
-        <a class="wa-link-small" href="${waLink(p)}" target="_blank" rel="noopener">${WA_ICON} Consultar por WhatsApp</a>
+        <a class="wa-link-small" href="${waLink(p)}" target="_blank" rel="noopener">Consultar por WhatsApp</a>
       </div>
     </div>
   `;
