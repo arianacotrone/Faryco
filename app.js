@@ -9,7 +9,7 @@ const WHATSAPP_NUMBER = "5491100000000";
 // ID de la Google Sheet que funciona como "base de datos" del catálogo.
 // Se saca de la URL de la hoja: https://docs.google.com/spreadsheets/d/ESTE_ES_EL_ID/edit
 // Dejalo vacío ("") para que la página use solo los datos embebidos en products.fallback.js.
-const SHEET_ID = "https://docs.google.com/spreadsheets/d/1UC3R2aKW-p5EsGKgd-M5a-hQEJsrQsOb6Mx9vKK17pI/edit?usp=sharing";
+const SHEET_ID = "1UC3R2aKW-p5EsGKgd-M5a-hQEJsrQsOb6Mx9vKK17pI";
 
 // Nombre de la pestaña (tab) dentro de esa Google Sheet que tiene la tabla de productos.
 const SHEET_NAME = "productos";
@@ -37,6 +37,20 @@ let activeCat = "all";
 let query = "";
 
 function money(n){ return "$" + Number(n).toLocaleString("es-AR"); }
+
+// Convierte un link de "Compartir" de Google Drive (.../file/d/ID/view...) en un link
+// que se puede mostrar directo como imagen. Si ya es un link directo, o de otro origen,
+// lo deja igual.
+function normalizeImgUrl(url){
+  if (!url) return url;
+  const trimmed = url.trim();
+  if (!trimmed) return trimmed;
+  const m = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return `https://lh3.googleusercontent.com/d/${m[1]}`;
+  const m2 = trimmed.match(/drive\.google\.com\/.*[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m2) return `https://lh3.googleusercontent.com/d/${m2[1]}`;
+  return trimmed;
+}
 
 // ---- parseo de la Google Sheet publicada como CSV ----
 // Google devuelve el CSV con líneas separadas por \r\n y celdas entre comillas cuando
@@ -85,8 +99,8 @@ function rowsToProducts(rows){
       unidades,
       orig: Number(row[iOrig]) || 0,
       liq: Number(row[iLiq]) || 0,
-      img: (iImg > -1 ? row[iImg] : "") || "",
-      img2: (iImg2 > -1 ? row[iImg2] : "") || ""
+      img: normalizeImgUrl(iImg > -1 ? row[iImg] : ""),
+      img2: normalizeImgUrl(iImg2 > -1 ? row[iImg2] : "")
     });
   }
   return out;
