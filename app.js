@@ -4,7 +4,7 @@
 
 // Número de WhatsApp del negocio para el botón "Consultar por WhatsApp".
 // Formato: código de país + número, SIN "+" y SIN espacios. Ej: 5491122334455
-const WHATSAPP_NUMBER = "5491134442814";
+const WHATSAPP_NUMBER = "5491100000000";
 
 // ID de la Google Sheet que funciona como "base de datos" del catálogo.
 // Se saca de la URL de la hoja: https://docs.google.com/spreadsheets/d/ESTE_ES_EL_ID/edit

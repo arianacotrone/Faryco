@@ -31,11 +31,12 @@ La idea: el catálogo vive en una Google Sheet dentro de tu Drive. La página we
 - Botón **Compartir** (arriba a la derecha) → cambiar a "Cualquier persona con el enlace" → rol **Lector**. Sin este paso la página no va a poder leerla (va a mostrar el catálogo de respaldo en su lugar, así que nunca se rompe, pero tampoco se actualiza).
 
 **3. Conectarla a la página**
-- De la URL de la hoja (`https://docs.google.com/spreadsheets/d/ESTO_ES_EL_ID/edit`) copiá el ID.
+- De la URL de la hoja (`https://docs.google.com/spreadsheets/d/ESTO_ES_EL_ID/edit`) copiá **solo el ID** — la parte larga de letras y números entre `/d/` y `/edit`, sin el resto de la URL.
 - En `app.js`, al principio del archivo, pegalo acá:
   ```js
   const SHEET_ID = "ESTO_ES_EL_ID";
   ```
+  ⚠️ Un error común es pegar la URL completa (`https://docs.google.com/spreadsheets/d/.../edit?usp=sharing`) en vez de solo el ID — con la URL completa la página no puede leer la hoja y muestra el catálogo de respaldo sin avisar con un error grande. Si las fotos o el stock no se actualizan, este es el primer lugar para revisar.
 - Subís el `app.js` actualizado a GitHub y listo — la página ya lee la planilla en vivo.
 
 **Cómo se actualiza el stock de ahí en adelante:** abrís la Google Sheet y editás directamente.
@@ -55,7 +56,7 @@ Cada producto tiene dos columnas en la Google Sheet: `imagen_url` (foto principa
 Para conseguir el link de cada foto, dos formas:
 
 - **Recomendado — carpeta `images/` en el mismo repo de GitHub:** subís la foto a una carpeta `images/` en tu repo (ej. `images/bermuda-lawes.jpg`) y en `imagen_url` ponés `https://raw.githubusercontent.com/tu-usuario/tu-repo/main/images/bermuda-lawes.jpg`. Es la opción más confiable — no depende de permisos de Drive ni se puede cortar por límites de tráfico.
-- **Alternativa — imagen alojada en Drive:** subís la foto a Drive, click derecho → Compartir → "Cualquier persona con el enlace", copiás el link y lo transformás al formato `https://drive.google.com/uc?export=view&id=ID_DEL_ARCHIVO` (el ID es la parte larga del link que copiaste). Funciona, pero Google a veces limita estas imágenes si reciben mucho tráfico — para el catálogo del día a día andá con la opción de GitHub.
+- **Alternativa — imagen alojada en Drive:** subís la foto a Drive, click derecho → Compartir → "Cualquier persona con el enlace", y pegás ese link tal cual en la columna (el que empieza con `https://drive.google.com/file/d/.../view?usp=sharing`) — **no hace falta transformarlo a mano**, `app.js` lo detecta y lo convierte solo al formato que se puede mostrar. Funciona bien, pero Google a veces limita estas imágenes si reciben mucho tráfico — para el catálogo del día a día andá con la opción de GitHub si podés.
 
 En cuanto la celda `imagen_url` tiene algo cargado, la tarjeta del producto muestra esa foto en vez del placeholder — no hace falta cambiar nada más.
 
