@@ -589,12 +589,25 @@ document.getElementById("grid").addEventListener("click", (e) => {
     const select = card.querySelector(".talle-select");
     const qtyVal = card.querySelector(".qty-value");
     const product = PRODUCTS.find(p => String(p.id) === String(select.dataset.id));
+    
+    // Obtener el stock total de ese talle
     const maxStock = (product && select.value)
       ? ((product.sizeStock.find(s => s.size === select.value) || {}).qty || 1)
       : 99;
+
+    // Restar lo que el usuario YA tiene agregado en el carrito
+    const inCartQty = select.value 
+      ? (CART.find(c => c.key === cartItemKey(product.id, select.value)) || {}).qty || 0
+      : 0;
+
+    const stockDisponible = Math.max(0, maxStock - inCartQty);
+
     let v = Number(qtyVal.textContent) || 1;
-    if (qtyBtn.classList.contains("qty-plus")) v = Math.min(v + 1, maxStock);
-    else v = Math.max(1, v - 1);
+    if (qtyBtn.classList.contains("qty-plus")) {
+      v = Math.min(v + 1, stockDisponible || 1);
+    } else {
+      v = Math.max(1, v - 1);
+    }
     qtyVal.textContent = v;
   }
 });
