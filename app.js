@@ -375,11 +375,18 @@ function cartItemKey(productId, talle){ return productId + "::" + talle; }
 function addToCart(product, talle, qty){
   const stockForSize = (product.sizeStock.find(s => s.size === talle) || {}).qty || 0;
   if (stockForSize <= 0) return false;
+
   const key = cartItemKey(product.id, talle);
   const existing = CART.find(c => c.key === key);
   const currentQty = existing ? existing.qty : 0;
-  const newQty = Math.min(currentQty + qty, stockForSize);
-  if (newQty <= 0) return false;
+
+  // Verificar si ya alcanzó el máximo disponible
+  if (currentQty + qty > stockForSize) {
+    alert(`Solo quedan ${stockForSize} unidad(es) disponibles en talle ${talle}.`);
+    return false;
+  }
+
+  const newQty = currentQty + qty;
   if (existing) existing.qty = newQty;
   else CART.push({
     key, id: product.id, name: product.name, catName: product.catName, cat: product.cat,
