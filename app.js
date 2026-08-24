@@ -68,7 +68,8 @@ function rowsToProducts(rows){
   const idx = name => header.indexOf(name);
   const iId = idx("id"), iCat = idx("categoria"), iCatName = idx("categoria_nombre"),
         iName = idx("nombre"), iTalles = idx("talles"), iUnid = idx("unidades"),
-        iOrig = idx("precio_original"), iLiq = idx("precio_liquidacion"), iImg = idx("imagen_url");
+        iOrig = idx("precio_original"), iLiq = idx("precio_liquidacion"),
+        iImg = idx("imagen_url"), iImg2 = idx("imagen_url_alt");
   const out = [];
   for (let r = 1; r < rows.length; r++){
     const row = rows[r];
@@ -84,7 +85,8 @@ function rowsToProducts(rows){
       unidades,
       orig: Number(row[iOrig]) || 0,
       liq: Number(row[iLiq]) || 0,
-      img: (iImg > -1 ? row[iImg] : "") || ""
+      img: (iImg > -1 ? row[iImg] : "") || "",
+      img2: (iImg2 > -1 ? row[iImg2] : "") || ""
     });
   }
   return out;
@@ -156,11 +158,16 @@ function cardHTML(p){
   const off = p.orig ? Math.round((1 - p.liq/p.orig)*100) : 0;
   const lowStock = p.unidades <= 1;
   const hasImg = p.img && p.img.trim();
+  const hasAlt = hasImg && p.img2 && p.img2.trim();
+  const primaryLayer = hasImg
+    ? `<div class="layer primary${hasAlt ? " has-alt" : ""}" style="background-image:url('${p.img}')"></div>`
+    : `<div class="layer primary">${ICONS[p.cat] || ""}<span class="ph-label">Foto próximamente</span></div>`;
+  const altLayer = hasAlt ? `<div class="layer alt" style="background-image:url('${p.img2}')"></div>` : "";
   return `
     <div class="card">
-      <div class="swatch cat-${p.cat}" ${hasImg ? `style="background-image:url('${p.img}')"` : ""}>
-        ${hasImg ? "" : (ICONS[p.cat] || "")}
-        ${hasImg ? "" : `<span class="ph-label">Foto próximamente</span>`}
+      <div class="swatch cat-${p.cat}">
+        ${primaryLayer}
+        ${altLayer}
       </div>
       <div class="card-body">
         <div class="card-cat">${p.catName}</div>
@@ -195,8 +202,10 @@ function renderGrid(){
   empty.style.display = "none";
   grid.innerHTML = filtered.map(cardHTML).join("");
   filtered.forEach((p,i)=>{
-    const swEl = grid.children[i].querySelector(".swatch");
-    if (swEl && !(p.img && p.img.trim())) swEl.style.background = SWATCH_COLORS[p.cat] || "#8a7a68";
+    if (!(p.img && p.img.trim())){
+      const layerEl = grid.children[i].querySelector(".swatch .layer.primary");
+      if (layerEl) layerEl.style.background = SWATCH_COLORS[p.cat] || "#8a7a68";
+    }
   });
 }
 

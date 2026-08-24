@@ -23,7 +23,7 @@ La idea: el catálogo vive en una Google Sheet dentro de tu Drive. La página we
 > Nota: quise crear esa Google Sheet directo en tu Drive para dejarte todo funcionando, pero la conexión a Google Drive de esta sesión expiró a mitad de camino. Es un paso de 5 minutos que podés hacer vos (o reconectamos Drive y lo termino yo la próxima). Los pasos:
 
 **1. Crear la Google Sheet**
-- Te dejo aparte un archivo `catalogo_web.csv` con los 320 productos ya cargados (categoría, nombre, talles, unidades, precio original, precio de liquidación, y una columna vacía para la foto).
+- Te dejo aparte un archivo `catalogo_web.csv` con los 320 productos ya cargados (categoría, nombre, talles, unidades, precio original, precio de liquidación, y dos columnas vacías para las fotos: principal y alternativa).
 - En Google Sheets: **Archivo → Importar → Subir** ese CSV → "Reemplazar hoja de cálculo actual". Poné a la pestaña el nombre `productos` (así viene por defecto en `app.js`).
 - Te recomiendo guardarla en la misma carpeta de Drive donde ya tenés "VENTAS FHT / DETALLES", para tener todo junto.
 
@@ -47,7 +47,12 @@ La página recarga los datos de la Sheet cada vez que alguien la visita (no hay 
 
 ## Cómo se actualizan las fotos
 
-Cada producto tiene una columna `imagen_url` en la Google Sheet, vacía por ahora (por eso hoy se ve el ícono de categoría con "Foto próximamente"). Para poner la foto real de un producto, pegás ahí un link directo a una imagen. Dos formas de conseguir ese link:
+Cada producto tiene dos columnas en la Google Sheet: `imagen_url` (foto principal) e `imagen_url_alt` (foto alternativa — el mismo efecto que tiene farenheite.com de mostrar otra foto al pasar el mouse). Hoy las dos están vacías, por eso se ve el ícono de categoría con "Foto próximamente".
+
+- Si solo cargás `imagen_url`, la tarjeta muestra esa foto fija (con un leve zoom al pasar el mouse).
+- Si cargás las dos, al pasar el mouse por la tarjeta la foto principal se funde suavemente hacia la alternativa (ej: prenda sola → prenda puesta, o frente → espalda). No hace falta nada más, el efecto es automático apenas las dos celdas tienen datos.
+
+Para conseguir el link de cada foto, dos formas:
 
 - **Recomendado — carpeta `images/` en el mismo repo de GitHub:** subís la foto a una carpeta `images/` en tu repo (ej. `images/bermuda-lawes.jpg`) y en `imagen_url` ponés `https://raw.githubusercontent.com/tu-usuario/tu-repo/main/images/bermuda-lawes.jpg`. Es la opción más confiable — no depende de permisos de Drive ni se puede cortar por límites de tráfico.
 - **Alternativa — imagen alojada en Drive:** subís la foto a Drive, click derecho → Compartir → "Cualquier persona con el enlace", copiás el link y lo transformás al formato `https://drive.google.com/uc?export=view&id=ID_DEL_ARCHIVO` (el ID es la parte larga del link que copiaste). Funciona, pero Google a veces limita estas imágenes si reciben mucho tráfico — para el catálogo del día a día andá con la opción de GitHub.

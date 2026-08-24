@@ -181,16 +181,26 @@ button{font-family:inherit;}
   aspect-ratio:4/3;
   display:flex; align-items:center; justify-content:center;
   position:relative;
+  overflow:hidden;
   color:var(--accent-ink);
-  background-size:cover;
-  background-position:center;
 }
+.swatch .layer{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  background-size:cover; background-position:center;
+  transition:opacity 0.32s ease, transform 0.32s ease;
+}
+.swatch .layer.alt{ opacity:0; }
+.card:hover .swatch .layer.alt{ opacity:1; }
+.card:hover .swatch .layer.primary.has-alt{ opacity:0; }
+.card:hover .swatch .layer.primary:not(.has-alt){ transform:scale(1.045); }
 .swatch svg{width:34%; height:34%; opacity:0.92;}
 .swatch .ph-label{
   position:absolute; bottom:8px; right:10px;
   font-size:10px; letter-spacing:0.04em; text-transform:uppercase;
   background:rgba(0,0,0,0.22); color:#fff;
   padding:3px 7px; border-radius:5px;
+  z-index:2;
 }
 .card-body{
   padding:12px 14px 14px;
