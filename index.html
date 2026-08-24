@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Far & Co. — Liquidación</title>
+<meta name="description" content="Catálogo de liquidación de stock ex Farenheite. Consultá por WhatsApp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="wordmark">
+      <span class="brand">FAR &amp; CO.</span>
+      <span class="sub">antes Farenheite · liquidación de stock</span>
+    </div>
+    <div class="search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" type="text" placeholder="Buscar producto o color…" autocomplete="off">
+    </div>
+  </div>
+</div>
+
+<div class="hero">
+  <div>
+    <h1>Liquidación<br><span class="accent">total.</span> Última vez.</h1>
+    <p>Cerramos el local, no la relación. Todo el stock remanente de Farenheite con descuento real hasta agotar — consultá por WhatsApp y coordinamos envío o retiro.</p>
+  </div>
+  <div class="stat-row" id="statRow"></div>
+</div>
+
+<div class="filters" id="filterRow"></div>
+
+<div class="grid" id="grid"></div>
+<div class="empty" id="emptyState" style="display:none;">No encontramos productos con ese filtro. Probá con otra búsqueda o categoría.</div>
+
+<footer>Far & Co. — ex Farenheite Calzada · <span id="ig">@farenheite_calzada</span> · Precios y disponibilidad sujetos a stock real al momento de la consulta.</footer>
+
+<script src="products.fallback.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
