@@ -178,7 +178,7 @@ button{font-family:inherit;}
   box-shadow:var(--shadow);
 }
 .swatch{
-  aspect-ratio:4/3;
+  aspect-ratio:4/5;
   display:flex; align-items:center; justify-content:center;
   position:relative;
   overflow:hidden;
