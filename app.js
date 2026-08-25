@@ -179,7 +179,7 @@ async function loadProducts(){
     const products = rowsToProducts(rows);
     if (!products.length) throw new Error("La hoja no devolvió productos");
     PRODUCTS = products;
-    setSyncNote(`Envío gratis a zona sur (Almirante Brown) en compras desde $100.000 · Precios y disponibilidad sujetos a stock real al momento de la consulta.`);
+    setSyncNote(`Envío gratis dentro de Almirante Brown en compras superiores a 50000 · Precios y disponibilidad sujetos a stock real al momento de la consulta.`);
   } catch (err){
     console.warn("No se pudo leer la Google Sheet, usando datos embebidos:", err);
     PRODUCTS = PRODUCTS_FALLBACK.map(p => ({ ...p, sizeStock: p.sizeStock || parseSizeStock(p.talles.join("|")) }));
