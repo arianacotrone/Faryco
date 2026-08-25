@@ -15,7 +15,7 @@ const SHEET_ID = "1UC3R2aKW-p5EsGKgd-M5a-hQEJsrQsOb6Mx9vKK17pI";
 const SHEET_NAME = "productos";
 
 // A partir de qué monto de compra el envío a zona sur es gratis.
-const FREE_SHIPPING_MIN = 0;
+const FREE_SHIPPING_MIN = 50000;
 
 // Localidades del Partido de Almirante Brown = "zona sur" con envío gratis desde el monto de arriba.
 // Agregá o sacá localidades libremente, es solo una lista de texto.
