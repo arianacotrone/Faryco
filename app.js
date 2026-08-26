@@ -28,7 +28,7 @@ const ALMIRANTE_BROWN_LOCALIDADES = [
 // Peso estimado (en kg) de una prenda de cada categoría, para calcular el tramo de envío.
 // Son valores aproximados — ajustalos si ves que el peso real de tus prendas es distinto.
 const CATEGORY_WEIGHT_KG = {
-  buzos: 0.5, bermudas: 0.35, camisas: 0.3, remeras: 0.22, chombas:0.22, camperas: 0.7, mallas: 0.15, otros: 0.3
+  buzos: 0.5, bermudas: 0.35, pantalón:0.6, camisas: 0.3, remeras: 0.22, chombas:0.22, camperas: 0.7, mallas: 0.15, otros: 0.3
 };
 
 // Tarifas ESTIMADAS de envío por zona y por peso total del pedido, saliendo desde CP 1847
@@ -49,8 +49,9 @@ const SHIPPING_ZONES = {
 const ICONS = {
   buzos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 3 3 7l3 3 2-1.4V21h8V8.6L18 10l3-3-5-4-2 2h-4L8 3Z"/></svg>',
   bermudas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h14l1 8-2 10h-4l-1-8-1 8H8L6 11 5 3Z"/></svg>',
+  pantalón: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h14l1 8-2 10h-4l-1-8-1 8H8L6 11 5 3Z"/></svg>',
   camisas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 3 4 6l1.5 3L8 8v13h8V8l2.5 1L20 6l-4-3-2 2h-4L8 3Z"/><path d="M10 3v3a2 2 0 0 0 4 0V3"/></svg>',
-  chombas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 3 3 7l3 3 2-1.4V21h8V8.6L19 10l3-3-5-4-2 2h-4L8 3Z"/></svg>',
+  chombas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 3 4 6l1.5 3L8 8v13h8V8l2.5 1L20 6l-4-3-2 2h-4L8 3Z"/><path d="M10 3v3a2 2 0 0 0 4 0V3"/></svg>',
   remeras: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 3 3 7l3 3 2-1.4V21h8V8.6L19 10l3-3-5-4-2 2h-4L8 3Z"/></svg>',
   camperas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 3 3 7l3 3 2-1.4V21h2v-6h4v6h2V8.6L19 10l3-3-5-4-2 2h-4L8 3Z"/><line x1="12" y1="9" x2="12" y2="21"/></svg>',
   mallas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12l1 5-3 1v12H8V9L5 8l1-5Z"/></svg>',
@@ -60,7 +61,7 @@ const WA_ICON = '<svg viewBox="0 0 32 32" fill="currentColor"><path d="M16.02 3C
 const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>';
 
 const SWATCH_COLORS = {
-  buzos:"#8a6a4f", bermudas:"#5c7a63", camisas:"#4d6a80", chombas: "#f5622f", remeras:"#a5622f", camperas:"#5b5266", mallas:"#b1483f", otros: "#a2483f"
+  buzos:"#8a6a4f", bermudas:"#5c7a63",pantalón: "#5d7a63" camisas:"#4d6a80", chombas: "#f5622f", remeras:"#a5622f", camperas:"#5b5266", mallas:"#b1483f", otros: "#a2483f"
 };
 
 const SIZE_ORDER = ["XS","S","M","L","XL","XXL","2XL","3XL"];
