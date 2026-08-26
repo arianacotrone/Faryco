@@ -7,25 +7,15 @@ Landing de catálogo con carrito y envío (ex Farenheite). Cuatro archivos, sin 
 - `app.js` — la lógica: trae los productos, arma los filtros/submenú, las tarjetas, el carrito y el cálculo de envío
 - `products.fallback.js` — una copia fija de los 320 productos (se usa si todavía no conectaste la Google Sheet, o si por algún motivo no se puede llegar a ella — así la página nunca se rompe)
 
-## Publicarla en GitHub Pages con tu dominio
-
-1. Subí estos 4 archivos a la raíz de tu repo en GitHub (reemplazando los que ya tenías).
-2. **Settings → Pages → Source → Deploy from a branch**, elegí `main` y `/ (root)`. En unos minutos queda online en `https://tu-usuario.github.io/tu-repo/`.
-3. Para tu dominio propio: **Settings → Pages → Custom domain**, escribí el dominio (esto crea un archivo `CNAME` en el repo). En tu proveedor de DNS agregá:
-   - Subdominio (`www.tudominio.com`): registro **CNAME** → `tu-usuario.github.io`
-   - Dominio raíz (`tudominio.com`): 4 registros **A** → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
-   - Tildá "Enforce HTTPS" cuando el DNS ya haya propagado.
-
 ## Cómo queda vinculado a tu Google Drive (y cómo se actualiza el stock)
 
-El catálogo vive en tu Google Sheet. La página la lee automáticamente cada vez que alguien la abre — **nunca tenés que tocar código para actualizar precios, stock o fotos**, solo editás la planilla.
+El catálogo vive en un Google Sheet. La página la lee automáticamente cada vez que alguien la abre — **nunca tenés que tocar código para actualizar precios, stock o fotos**, solo editás la planilla.
 
 - **1. Compartir la Sheet:** botón **Compartir** (arriba a la derecha) → "Cualquier persona con el enlace" → rol **Lector**. Sin este paso la página no puede leerla (muestra el catálogo de respaldo en su lugar, así que nunca se rompe, pero tampoco se actualiza).
 - **2. Conectar el ID:** de la URL de la hoja (`https://docs.google.com/spreadsheets/d/ESTO_ES_EL_ID/edit`) copiá **solo el ID** — la parte larga de letras y números entre `/d/` y `/edit`, sin el resto de la URL. En `app.js`, al principio del archivo:
   ```js
   const SHEET_ID = "ESTO_ES_EL_ID";
   ```
-  ⚠️ El error más común es pegar la URL completa en vez de solo el ID — así la página no puede leer la hoja y muestra el catálogo de respaldo sin avisar con un error grande. Si algo no se actualiza (fotos, stock, colores), este es el primer lugar para revisar.
 
 **Cómo se actualiza el stock de ahí en adelante:** abrís la Google Sheet y editás directamente.
 - ¿Se vendió todo un modelo? Poné `0` en la columna `unidades` (o borrá la fila) — desaparece solo de la web. No hace falta tocar GitHub.
