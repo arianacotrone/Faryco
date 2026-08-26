@@ -61,7 +61,7 @@ const WA_ICON = '<svg viewBox="0 0 32 32" fill="currentColor"><path d="M16.02 3C
 const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>';
 
 const SWATCH_COLORS = {
-  buzos:"#8a6a4f", bermudas:"#5c7a63",pantalón: "#5d7a63" camisas:"#4d6a80", chombas: "#f5622f", remeras:"#a5622f", camperas:"#5b5266", mallas:"#b1483f", otros: "#a2483f"
+  buzos:"#8a6a4f", bermudas:"#5c7a63",pantalón: "#5d7a63", camisas:"#4d6a80", chombas: "#f5622f", remeras:"#a5622f", camperas:"#5b5266", mallas:"#b1483f", otros: "#a2483f"
 };
 
 const SIZE_ORDER = ["XS","S","M","L","XL","XXL","2XL","3XL"];
