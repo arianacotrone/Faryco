@@ -117,6 +117,17 @@ button{font-family:inherit;}
 .search input:focus{outline:2px solid var(--accent); outline-offset:1px;}
 .search svg{position:absolute; left:10px; top:50%; transform:translateY(-50%); opacity:0.55;}
 
+.placeholder-banner {
+  background: #fff3cd;
+  color: #664d03;
+  text-align: center;
+  padding: 10px 16px;
+  font-family: var(--sans);
+  font-size: 13px;
+  border-bottom: 2px dashed #e0b400;
+  position: relative;
+  z-index: 60;
+}
 /* ---------- botón carrito ---------- */
 .cart-btn{
   position:relative;
