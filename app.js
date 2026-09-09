@@ -798,9 +798,11 @@ function openProductModal(p){
   const detailsEl = document.getElementById("modalDetails");
   const waBtn = document.getElementById("modalWaBtn");
 
+  // Inyectar Nombre y Categoría
   if (titleEl) titleEl.textContent = p.name;
   if (catEl) catEl.textContent = p.catName + (p.color ? " · " + p.color : "");
 
+  // Inyectar Precios y Off
   if (pricesEl){
     const off = p.orig ? Math.round((1 - p.liq/p.orig)*100) : 0;
     pricesEl.innerHTML = `
@@ -810,11 +812,12 @@ function openProductModal(p){
     `;
   }
 
+  // Inyectar Talles
   if (tallesEl){
     tallesEl.innerHTML = p.talles.map(t => `<span class="talle">${t}</span>`).join("");
   }
 
-  // Muestra la descripción/detalles cargados desde Google Sheets dentro del modal
+  // Inyectar Detalles
   if (detailsEl){
     if (p.detalles){
       detailsEl.innerHTML = `<strong>Detalles:</strong><p>${p.detalles}</p>`;
@@ -825,9 +828,7 @@ function openProductModal(p){
     }
   }
 
-  if (waBtn){
-    waBtn.href = waLink(p);
-  }
+  if (waBtn) waBtn.href = waLink(p);
 
   renderModalGallery();
 
