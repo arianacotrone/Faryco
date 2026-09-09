@@ -851,8 +851,7 @@ document.getElementById("modalAddBtn").addEventListener("click", () => {
     btn.classList.add("added");
     setTimeout(() => { btn.textContent = original; btn.classList.remove("added"); }, 1200);
     document.getElementById("modalQtyValue").textContent = "1";
-  }
-});
+  });
 
 document.addEventListener("keydown", (e) => {
   if (!document.getElementById("productModal").classList.contains("open")) return;
