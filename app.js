@@ -142,7 +142,9 @@ function rowsToProducts(rows){
   const iId = idx("id"), iCat = idx("categoria"), iCatName = idx("categoria_nombre"),
         iName = idx("nombre"), iColor = idx("color"), iTalles = idx("talles"), iUnid = idx("unidades"),
         iOrig = idx("precio_original"), iLiq = idx("precio_liquidacion"),
-        iImg = idx("imagen_url"), iImg2 = idx("imagen_url_alt"), iImgExtra = idx("imagenes_extra");
+        iImg = idx("imagen_url"), iImg2 = idx("imagen_url_alt"), iImgExtra = idx("imagenes_extra"),
+        iDetalles = idx("detalles"); // <-- Leemos la columna "detalles"
+
   const out = [];
   for (let r = 1; r < rows.length; r++){
     const row = rows[r];
@@ -150,11 +152,11 @@ function rowsToProducts(rows){
     const unidades = Number(row[iUnid]) || 0;
     if (unidades <= 0) continue; // vendido / sin stock -> no se muestra
     const talles = (row[iTalles] || "").split("|").map(t => t.trim()).filter(Boolean);
-    // "imagenes_extra" (opcional): más fotos del mismo producto, separadas por "|".
-    // Ej: "https://.../foto3.jpg | https://.../foto4.jpg"
+    
     const galleryExtra = iImgExtra > -1
       ? (row[iImgExtra] || "").split("|").map(u => normalizeImgUrl(u.trim())).filter(Boolean)
       : [];
+
     out.push({
       id: row[iId] || String(r),
       cat: row[iCat] || "otros",
@@ -168,7 +170,8 @@ function rowsToProducts(rows){
       liq: Number(row[iLiq]) || 0,
       img: normalizeImgUrl(iImg > -1 ? row[iImg] : ""),
       img2: normalizeImgUrl(iImg2 > -1 ? row[iImg2] : ""),
-      galleryExtra
+      galleryExtra,
+      detalles: iDetalles > -1 ? (row[iDetalles] || "").trim() : "" // <-- Guardamos la descripción
     });
   }
   return out;
@@ -316,6 +319,7 @@ function cardHTML(p){
     : `<div class="layer primary">${ICONS[p.cat] || ""}<span class="ph-label">Foto próximamente</span></div>`;
   const altLayer = hasAlt ? `<div class="layer alt" style="background-image:url('${p.img2}')"></div>` : "";
   const sizeOptions = availableSizes.map(s => `<option value="${s.size}">${s.size}</option>`).join("");
+
   return `
     <div class="card" data-id="${p.id}">
       <div class="swatch cat-${p.cat}" data-id="${p.id}">
@@ -346,6 +350,7 @@ function cardHTML(p){
         </div>
         <button type="button" class="add-cart-btn" data-id="${p.id}">Agregar al carrito</button>
         <a class="wa-link-small" href="${waLink(p)}" target="_blank" rel="noopener">Consultar por WhatsApp</a>
+        ${p.detalles ? `<p class="card-details">${p.detalles}</p>` : ''} 
       </div>
     </div>
   `;
