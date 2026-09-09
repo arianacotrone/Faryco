@@ -571,12 +571,12 @@ body.cart-open-lock{overflow:hidden;}
 .wa-btn-checkout:hover{opacity:1; background:#20bd5a; transform:translateY(-1px);}
 .wa-btn-checkout svg{width:17px; height:17px;}
 
-.card-details {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: #666;
-  line-height: 1.35;
-  white-space: pre-line; /* Mantiene los saltos de línea cargados en la celda de Google Sheets */
+.modal-details {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.4;
+  white-space: pre-line; /* Preserva saltos de línea de la hoja de cálculo */
 }
 
 /* ---------- AJUSTES PARA CELULAR (Dispositivos Móviles) ---------- */
