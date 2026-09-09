@@ -142,9 +142,7 @@ function rowsToProducts(rows){
   const iId = idx("id"), iCat = idx("categoria"), iCatName = idx("categoria_nombre"),
         iName = idx("nombre"), iColor = idx("color"), iTalles = idx("talles"), iUnid = idx("unidades"),
         iOrig = idx("precio_original"), iLiq = idx("precio_liquidacion"),
-        iImg = idx("imagen_url"), iImg2 = idx("imagen_url_alt"), iImgExtra = idx("imagenes_extra"),
-        iDetalles = idx("detalles"); // <-- Leemos la columna "detalles"
-
+        iImg = idx("imagen_url"), iImg2 = idx("imagen_url_alt"), iImgExtra = idx("imagenes_extra");
   const out = [];
   for (let r = 1; r < rows.length; r++){
     const row = rows[r];
@@ -152,11 +150,11 @@ function rowsToProducts(rows){
     const unidades = Number(row[iUnid]) || 0;
     if (unidades <= 0) continue; // vendido / sin stock -> no se muestra
     const talles = (row[iTalles] || "").split("|").map(t => t.trim()).filter(Boolean);
-    
+    // "imagenes_extra" (opcional): más fotos del mismo producto, separadas por "|".
+    // Ej: "https://.../foto3.jpg | https://.../foto4.jpg"
     const galleryExtra = iImgExtra > -1
       ? (row[iImgExtra] || "").split("|").map(u => normalizeImgUrl(u.trim())).filter(Boolean)
       : [];
-
     out.push({
       id: row[iId] || String(r),
       cat: row[iCat] || "otros",
@@ -170,8 +168,7 @@ function rowsToProducts(rows){
       liq: Number(row[iLiq]) || 0,
       img: normalizeImgUrl(iImg > -1 ? row[iImg] : ""),
       img2: normalizeImgUrl(iImg2 > -1 ? row[iImg2] : ""),
-      galleryExtra,
-      detalles: iDetalles > -1 ? (row[iDetalles] || "").trim() : "" // <-- Guardamos la descripción
+      galleryExtra
     });
   }
   return out;
@@ -319,7 +316,6 @@ function cardHTML(p){
     : `<div class="layer primary">${ICONS[p.cat] || ""}<span class="ph-label">Foto próximamente</span></div>`;
   const altLayer = hasAlt ? `<div class="layer alt" style="background-image:url('${p.img2}')"></div>` : "";
   const sizeOptions = availableSizes.map(s => `<option value="${s.size}">${s.size}</option>`).join("");
-
   return `
     <div class="card" data-id="${p.id}">
       <div class="swatch cat-${p.cat}" data-id="${p.id}">
@@ -350,7 +346,6 @@ function cardHTML(p){
         </div>
         <button type="button" class="add-cart-btn" data-id="${p.id}">Agregar al carrito</button>
         <a class="wa-link-small" href="${waLink(p)}" target="_blank" rel="noopener">Consultar por WhatsApp</a>
-        } 
       </div>
     </div>
   `;
@@ -764,29 +759,38 @@ function setModalIndex(i){
   renderModalGallery();
 }
 
-function openProductModal(p) {
-  modalProduct = p;
-  modalGallery = getGallery(p);
+function openProductModal(product){
+  modalProduct = product;
+  modalGallery = getGallery(product);
   modalIndex = 0;
+  renderModalGallery();
 
-  // ... (tu código para armar la galería de fotos) ...
+  document.getElementById("modalCat").textContent = product.catName + (product.color ? " · " + product.color : "");
+  document.getElementById("modalName").textContent = product.name;
 
-  const detailsHTML = p.detalles 
-    ? `<div class="modal-details">${p.detalles}</div>` 
-    : '';
+  const availableSizes = product.sizeStock.filter(s => s.qty > 0);
+  const totalUnidades = availableSizes.reduce((s,x) => s+x.qty, 0);
+  document.getElementById("modalTalles").innerHTML = product.talles.map(t=>`<span class="talle">${t}</span>`).join("");
 
-  // Dentro del HTML que inyectas en el modal, agrega 'detailsHTML' después del botón de WhatsApp:
-  modalContentEl.innerHTML = `
-    <!-- ... resto del contenido del modal ... -->
-    
-    <a class="wa-link-small" href="${waLink(p)}" target="_blank" rel="noopener">
-      Consultar por WhatsApp
-    </a>
-    
-    ${detailsHTML}
-  `;
+  const off = product.orig ? Math.round((1 - product.liq/product.orig)*100) : 0;
+  document.getElementById("modalPriceOrig").textContent = money(product.orig);
+  document.getElementById("modalPriceLiq").textContent = money(product.liq);
+  document.getElementById("modalOffBadge").textContent = `-${off}%`;
+  document.getElementById("modalStockNote").textContent = totalUnidades <= 1 ? "Última unidad" : totalUnidades + " unidades en stock";
 
-  // ... (código para abrir/mostrar el modal) ...
+  const select = document.getElementById("modalTalleSelect");
+  select.innerHTML = `<option value="">Talle</option>` + availableSizes.map(s => `<option value="${s.size}">${s.size}</option>`).join("");
+  select.classList.remove("input-error");
+  document.getElementById("modalQtyValue").textContent = "1";
+  document.getElementById("modalQtyMinus").disabled = true;
+  document.getElementById("modalQtyPlus").disabled = true;
+
+  document.getElementById("modalWaLink").href = waLink(product);
+
+  document.getElementById("modalOverlay").classList.add("open");
+  document.getElementById("productModal").hidden = false;
+  document.getElementById("productModal").classList.add("open");
+  document.body.classList.add("modal-open-lock");
 }
 
 function closeProductModal(){
@@ -851,7 +855,8 @@ document.getElementById("modalAddBtn").addEventListener("click", () => {
     btn.classList.add("added");
     setTimeout(() => { btn.textContent = original; btn.classList.remove("added"); }, 1200);
     document.getElementById("modalQtyValue").textContent = "1";
-  });
+  }
+});
 
 document.addEventListener("keydown", (e) => {
   if (!document.getElementById("productModal").classList.contains("open")) return;
