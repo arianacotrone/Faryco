@@ -817,7 +817,15 @@ function openProductModal(p){
     tallesEl.innerHTML = p.talles.map(t => `<span class="talle">${t}</span>`).join("");
   }
 
-  // Inyectar Detalles
+  if (waBtn) waBtn.href = waLink(p);
+
+  renderModalGallery();
+
+  if (modalEl){
+    modalEl.classList.add("open");
+    document.body.classList.add("modal-open-lock");
+
+      // Inyectar Detalles
   if (detailsEl){
     if (p.detalles){
       detailsEl.innerHTML = `<strong>Detalles:</strong><p>${p.detalles}</p>`;
@@ -827,14 +835,6 @@ function openProductModal(p){
       detailsEl.style.display = "none";
     }
   }
-
-  if (waBtn) waBtn.href = waLink(p);
-
-  renderModalGallery();
-
-  if (modalEl){
-    modalEl.classList.add("open");
-    document.body.classList.add("modal-open-lock");
   }
 }
 
