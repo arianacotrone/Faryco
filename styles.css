@@ -572,11 +572,27 @@ body.cart-open-lock{overflow:hidden;}
 .wa-btn-checkout svg{width:17px; height:17px;}
 
 .modal-details {
-  margin-top: 12px;
+  margin-top: 15px;
   font-size: 0.9rem;
   color: #555;
-  line-height: 1.4;
+  line-height: 1.45;
   white-space: pre-line; /* Preserva saltos de línea de la hoja de cálculo */
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.modal-details strong {
+  display: block;
+  color: #111;
+  margin-bottom: 4px;
 }
 
 /* ---------- AJUSTES PARA CELULAR (Dispositivos Móviles) ---------- */
