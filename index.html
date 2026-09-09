@@ -101,6 +101,49 @@
   </div>
 </aside>
 
+<div class="product-modal-overlay" id="modalOverlay"></div>
+<div class="product-modal" id="productModal" role="dialog" aria-modal="true" aria-label="Detalle del producto" hidden>
+  <button class="modal-close" id="modalClose" aria-label="Cerrar">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+  </button>
+  <div class="modal-inner">
+    <div class="modal-gallery">
+      <div class="modal-gallery-main" id="modalGalleryMain"></div>
+      <button class="modal-nav modal-prev" id="modalPrev" aria-label="Foto anterior">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <button class="modal-nav modal-next" id="modalNext" aria-label="Foto siguiente">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <span class="modal-counter" id="modalCounter" hidden></span>
+      <div class="modal-thumbs" id="modalThumbs"></div>
+    </div>
+    <div class="modal-details">
+      <div class="card-cat" id="modalCat"></div>
+      <h2 class="modal-name" id="modalName"></h2>
+      <div class="talles" id="modalTalles"></div>
+      <div class="price-row">
+        <span class="price-orig" id="modalPriceOrig"></span>
+        <span class="price-liq" id="modalPriceLiq"></span>
+        <span class="off-badge" id="modalOffBadge"></span>
+      </div>
+      <div class="stock-note" id="modalStockNote"></div>
+      <div class="card-controls">
+        <select class="talle-select" id="modalTalleSelect" aria-label="Elegir talle">
+          <option value="">Talle</option>
+        </select>
+        <div class="qty-stepper">
+          <button type="button" class="qty-btn" id="modalQtyMinus" aria-label="Restar" disabled>−</button>
+          <span class="qty-value text-muted" id="modalQtyValue">1</span>
+          <button type="button" class="qty-btn" id="modalQtyPlus" aria-label="Sumar" disabled>+</button>
+        </div>
+      </div>
+      <button type="button" class="add-cart-btn" id="modalAddBtn">Agregar al carrito</button>
+      <a class="wa-link-small" id="modalWaLink" href="#" target="_blank" rel="noopener">Consultar por WhatsApp</a>
+    </div>
+  </div>
+</div>
+
 <script src="products.fallback.js"></script>
 <script src="app.js"></script>
 </body>

@@ -31,16 +31,24 @@ La página recarga los datos de la Sheet cada vez que alguien la visita (no hay 
 
 Se agregó una columna `color` a la planilla para poder filtrar por color además de por talle. Le adivinamos el color a 256 de los 320 productos a partir del nombre (ej. "Amsterdam Negro" → Negro); quedaron **64 productos sin color asignado** porque el nombre no tenía ninguna palabra de color reconocible (nombres de estilo solos, tipo "Darling" o códigos de una letra). Esos productos van a aparecer en la web sin la etiqueta de color y no van a salir en ningún filtro de color — no rompen nada, pero conviene completarlos a mano cuando tengas un rato: abrí la Sheet, ordená por la columna `color` vacía y completá lo que falte mirando la prenda.
 
-Si tu Sheet actual **no tiene todavía** la columna `color`, importá el archivo `catalogo_web.csv` que te dejamos aparte — está generado a partir de tu Sheet actual (con tus fotos ya cargadas, no se pierde nada) y ya incluye la columna nueva:
+Si tu Sheet actual **no tiene todavía** la columna `color` (ni la columna nueva `imagenes_extra`, ver más abajo), importá el archivo `catalogo_web.csv` que te dejamos aparte — está generado a partir de tu Sheet actual (con tus fotos ya cargadas, no se pierde nada) y ya incluye las columnas nuevas:
 - **Archivo → Importar → Subir** ese CSV → elegí **"Reemplazar hoja de cálculo actual"** → confirmá que la casilla de "Convertir texto a números, fecha..." esté como estaba.
 - Revisá que la pestaña siga llamándose `productos` (así la busca `app.js`).
 
+Si preferís no reimportar todo, también podés simplemente agregar una columna nueva llamada `imagenes_extra` al final de tu Sheet actual — `app.js` la detecta sola, no hace falta tocar código.
+
 ## Cómo se actualizan las fotos
 
-Cada producto tiene dos columnas: `imagen_url` (foto principal) e `imagen_url_alt` (foto alternativa — el mismo efecto que tiene farenheite.com de mostrar otra foto al pasar el mouse).
+Cada producto tiene tres columnas para fotos: `imagen_url` (foto principal), `imagen_url_alt` (foto alternativa) e `imagenes_extra` (fotos adicionales, opcional).
 
 - Si solo cargás `imagen_url`, la tarjeta muestra esa foto fija (con un leve zoom al pasar el mouse).
-- Si cargás las dos, al pasar el mouse por la tarjeta la foto principal se funde suavemente hacia la alternativa (ej: prenda sola → prenda puesta, o frente → espalda). Automático apenas las dos celdas tienen datos.
+- Si cargás `imagen_url` e `imagen_url_alt`, al pasar el mouse por la tarjeta la foto principal se funde suavemente hacia la alternativa (ej: prenda sola → prenda puesta, o frente → espalda). Automático apenas las dos celdas tienen datos.
+- **Al hacer click en la foto o en el nombre de cualquier producto** se abre una ventana con todas sus fotos para recorrer (flechas, miniaturas abajo, o las flechas del teclado) y el detalle completo (talles, precio, stock, y el mismo botón de "Agregar al carrito"). Esa ventana muestra **todas** las fotos que tenga cargadas ese producto: `imagen_url` + `imagen_url_alt` + lo que haya en `imagenes_extra`.
+- `imagenes_extra` es opcional y admite **más de una foto**: pegá los links separados por `|` (la misma barra que ya usás en la columna `talles`). Ejemplo:
+  ```
+  https://raw.githubusercontent.com/tu-usuario/tu-repo/main/images/bermuda-lawes-3.jpg | https://raw.githubusercontent.com/tu-usuario/tu-repo/main/images/bermuda-lawes-4.jpg
+  ```
+  Si un producto no tiene nada cargado en `imagenes_extra`, esa ventana simplemente muestra las dos fotos normales (o una, o el ícono de "sin foto") — no hace falta completarla en todos los productos, solo en los que quieras mostrar con más detalle.
 
 Para conseguir el link de cada foto, dos formas:
 

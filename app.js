@@ -142,7 +142,7 @@ function rowsToProducts(rows){
   const iId = idx("id"), iCat = idx("categoria"), iCatName = idx("categoria_nombre"),
         iName = idx("nombre"), iColor = idx("color"), iTalles = idx("talles"), iUnid = idx("unidades"),
         iOrig = idx("precio_original"), iLiq = idx("precio_liquidacion"),
-        iImg = idx("imagen_url"), iImg2 = idx("imagen_url_alt");
+        iImg = idx("imagen_url"), iImg2 = idx("imagen_url_alt"), iImgExtra = idx("imagenes_extra");
   const out = [];
   for (let r = 1; r < rows.length; r++){
     const row = rows[r];
@@ -150,6 +150,11 @@ function rowsToProducts(rows){
     const unidades = Number(row[iUnid]) || 0;
     if (unidades <= 0) continue; // vendido / sin stock -> no se muestra
     const talles = (row[iTalles] || "").split("|").map(t => t.trim()).filter(Boolean);
+    // "imagenes_extra" (opcional): más fotos del mismo producto, separadas por "|".
+    // Ej: "https://.../foto3.jpg | https://.../foto4.jpg"
+    const galleryExtra = iImgExtra > -1
+      ? (row[iImgExtra] || "").split("|").map(u => normalizeImgUrl(u.trim())).filter(Boolean)
+      : [];
     out.push({
       id: row[iId] || String(r),
       cat: row[iCat] || "otros",
@@ -162,9 +167,23 @@ function rowsToProducts(rows){
       orig: Number(row[iOrig]) || 0,
       liq: Number(row[iLiq]) || 0,
       img: normalizeImgUrl(iImg > -1 ? row[iImg] : ""),
-      img2: normalizeImgUrl(iImg2 > -1 ? row[iImg2] : "")
+      img2: normalizeImgUrl(iImg2 > -1 ? row[iImg2] : ""),
+      galleryExtra
     });
   }
+  return out;
+}
+
+// Junta todas las fotos disponibles de un producto (principal + alternativa + extras)
+// en un solo array, sin vacíos ni duplicados, en el orden en que aparecen en la planilla.
+function getGallery(p){
+  const all = [p.img, p.img2, ...(p.galleryExtra || [])];
+  const seen = new Set();
+  const out = [];
+  all.forEach(url => {
+    const u = (url || "").trim();
+    if (u && !seen.has(u)){ seen.add(u); out.push(u); }
+  });
   return out;
 }
 
@@ -298,14 +317,14 @@ function cardHTML(p){
   const altLayer = hasAlt ? `<div class="layer alt" style="background-image:url('${p.img2}')"></div>` : "";
   const sizeOptions = availableSizes.map(s => `<option value="${s.size}">${s.size}</option>`).join("");
   return `
-    <div class="card">
-      <div class="swatch cat-${p.cat}">
+    <div class="card" data-id="${p.id}">
+      <div class="swatch cat-${p.cat}" data-id="${p.id}">
         ${primaryLayer}
         ${altLayer}
       </div>
       <div class="card-body">
         <div class="card-cat">${p.catName}${p.color ? " · " + p.color : ""}</div>
-        <div class="card-name">${p.name}</div>
+        <button type="button" class="card-name card-name-link" data-id="${p.id}">${p.name}</button>
         <div class="talles">${p.talles.map(t=>`<span class="talle">${t}</span>`).join("")}</div>
         <div class="price-row">
           <span class="price-orig">${money(p.orig)}</span>
@@ -585,6 +604,12 @@ function updateCheckoutLink(shipCost){
 
 // ---- interacción: tarjetas de producto (delegación de eventos) ----
 document.getElementById("grid").addEventListener("click", (e) => {
+  const openTrigger = e.target.closest(".swatch, .card-name-link");
+  if (openTrigger){
+    const product = PRODUCTS.find(p => String(p.id) === String(openTrigger.dataset.id));
+    if (product) openProductModal(product);
+    return;
+  }
   const addBtn = e.target.closest(".add-cart-btn");
   if (addBtn){
     const card = addBtn.closest(".card");
@@ -685,6 +710,159 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeCart(
 document.getElementById("shipLocalidad").addEventListener("change", refreshShippingAndTotals);
 ["shipNombre","shipTelefono","shipDireccion"].forEach(id => {
   document.getElementById(id).addEventListener("input", refreshShippingAndTotals);
+});
+
+// ======================================================================
+// MODAL DE PRODUCTO — galería de fotos + detalle
+// ======================================================================
+
+let modalProduct = null;
+let modalGallery = [];
+let modalIndex = 0;
+
+function renderModalGallery(){
+  const mainEl = document.getElementById("modalGalleryMain");
+  const prevBtn = document.getElementById("modalPrev");
+  const nextBtn = document.getElementById("modalNext");
+  const counterEl = document.getElementById("modalCounter");
+  const thumbsEl = document.getElementById("modalThumbs");
+
+  if (modalGallery.length === 0){
+    mainEl.style.backgroundImage = "";
+    mainEl.innerHTML = ICONS[modalProduct.cat] || "";
+    mainEl.style.background = SWATCH_COLORS[modalProduct.cat] || "#8a7a68";
+  } else {
+    mainEl.style.background = "";
+    mainEl.innerHTML = "";
+    mainEl.style.backgroundImage = `url('${modalGallery[modalIndex]}')`;
+  }
+
+  const multi = modalGallery.length > 1;
+  prevBtn.hidden = !multi;
+  nextBtn.hidden = !multi;
+  counterEl.hidden = !multi;
+  if (multi) counterEl.textContent = `${modalIndex + 1} / ${modalGallery.length}`;
+
+  thumbsEl.hidden = !multi;
+  if (multi){
+    thumbsEl.innerHTML = modalGallery.map((url, i) =>
+      `<button type="button" class="modal-thumb ${i===modalIndex?'active':''}" data-i="${i}" style="background-image:url('${url}')" aria-label="Foto ${i+1}"></button>`
+    ).join("");
+  } else {
+    thumbsEl.innerHTML = "";
+  }
+}
+
+function setModalIndex(i){
+  if (modalGallery.length === 0) return;
+  modalIndex = (i + modalGallery.length) % modalGallery.length;
+  renderModalGallery();
+}
+
+function openProductModal(product){
+  modalProduct = product;
+  modalGallery = getGallery(product);
+  modalIndex = 0;
+  renderModalGallery();
+
+  document.getElementById("modalCat").textContent = product.catName + (product.color ? " · " + product.color : "");
+  document.getElementById("modalName").textContent = product.name;
+
+  const availableSizes = product.sizeStock.filter(s => s.qty > 0);
+  const totalUnidades = availableSizes.reduce((s,x) => s+x.qty, 0);
+  document.getElementById("modalTalles").innerHTML = product.talles.map(t=>`<span class="talle">${t}</span>`).join("");
+
+  const off = product.orig ? Math.round((1 - product.liq/product.orig)*100) : 0;
+  document.getElementById("modalPriceOrig").textContent = money(product.orig);
+  document.getElementById("modalPriceLiq").textContent = money(product.liq);
+  document.getElementById("modalOffBadge").textContent = `-${off}%`;
+  document.getElementById("modalStockNote").textContent = totalUnidades <= 1 ? "Última unidad" : totalUnidades + " unidades en stock";
+
+  const select = document.getElementById("modalTalleSelect");
+  select.innerHTML = `<option value="">Talle</option>` + availableSizes.map(s => `<option value="${s.size}">${s.size}</option>`).join("");
+  select.classList.remove("input-error");
+  document.getElementById("modalQtyValue").textContent = "1";
+  document.getElementById("modalQtyMinus").disabled = true;
+  document.getElementById("modalQtyPlus").disabled = true;
+
+  document.getElementById("modalWaLink").href = waLink(product);
+
+  document.getElementById("modalOverlay").classList.add("open");
+  document.getElementById("productModal").hidden = false;
+  document.getElementById("productModal").classList.add("open");
+  document.body.classList.add("modal-open-lock");
+}
+
+function closeProductModal(){
+  document.getElementById("modalOverlay").classList.remove("open");
+  document.getElementById("productModal").classList.remove("open");
+  document.body.classList.remove("modal-open-lock");
+  modalProduct = null;
+}
+
+document.getElementById("modalOverlay").addEventListener("click", closeProductModal);
+document.getElementById("modalClose").addEventListener("click", closeProductModal);
+document.getElementById("modalPrev").addEventListener("click", () => setModalIndex(modalIndex - 1));
+document.getElementById("modalNext").addEventListener("click", () => setModalIndex(modalIndex + 1));
+document.getElementById("modalThumbs").addEventListener("click", (e) => {
+  const t = e.target.closest(".modal-thumb");
+  if (t) setModalIndex(Number(t.dataset.i));
+});
+
+document.getElementById("modalTalleSelect").addEventListener("change", (e) => {
+  const hasValue = Boolean(e.target.value);
+  document.getElementById("modalQtyValue").textContent = "1";
+  e.target.classList.remove("input-error");
+  document.getElementById("modalQtyMinus").disabled = !hasValue;
+  document.getElementById("modalQtyPlus").disabled = !hasValue;
+});
+
+document.getElementById("modalQtyMinus").addEventListener("click", () => {
+  const qtyVal = document.getElementById("modalQtyValue");
+  qtyVal.textContent = Math.max(1, (Number(qtyVal.textContent) || 1) - 1);
+});
+document.getElementById("modalQtyPlus").addEventListener("click", () => {
+  if (!modalProduct) return;
+  const select = document.getElementById("modalTalleSelect");
+  const qtyVal = document.getElementById("modalQtyValue");
+  const maxStock = select.value
+    ? ((modalProduct.sizeStock.find(s => s.size === select.value) || {}).qty || 1)
+    : 99;
+  const inCartQty = select.value
+    ? (CART.find(c => c.key === cartItemKey(modalProduct.id, select.value)) || {}).qty || 0
+    : 0;
+  const stockDisponible = Math.max(0, maxStock - inCartQty);
+  const v = Number(qtyVal.textContent) || 1;
+  qtyVal.textContent = Math.min(v + 1, stockDisponible || 1);
+});
+
+document.getElementById("modalAddBtn").addEventListener("click", () => {
+  if (!modalProduct) return;
+  const select = document.getElementById("modalTalleSelect");
+  const talle = select.value;
+  if (!talle){
+    select.classList.add("input-error");
+    select.focus();
+    return;
+  }
+  select.classList.remove("input-error");
+  const qty = Number(document.getElementById("modalQtyValue").textContent) || 1;
+  const ok = addToCart(modalProduct, talle, qty);
+  if (ok){
+    const btn = document.getElementById("modalAddBtn");
+    const original = btn.textContent;
+    btn.textContent = "Agregado ✓";
+    btn.classList.add("added");
+    setTimeout(() => { btn.textContent = original; btn.classList.remove("added"); }, 1200);
+    document.getElementById("modalQtyValue").textContent = "1";
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (!document.getElementById("productModal").classList.contains("open")) return;
+  if (e.key === "Escape") closeProductModal();
+  else if (e.key === "ArrowLeft") setModalIndex(modalIndex - 1);
+  else if (e.key === "ArrowRight") setModalIndex(modalIndex + 1);
 });
 
 (async function init(){
