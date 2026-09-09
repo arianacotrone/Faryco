@@ -28,7 +28,7 @@ const ALMIRANTE_BROWN_LOCALIDADES = [
 // Peso estimado (en kg) de una prenda de cada categoría, para calcular el tramo de envío.
 // Son valores aproximados — ajustalos si ves que el peso real de tus prendas es distinto.
 const CATEGORY_WEIGHT_KG = {
-  buzos: 0.5, bermudas: 0.35, pantalón:0.6, camisas: 0.3, remeras: 0.22, chombas:0.22, camperas: 0.7, mallas: 0.15, otros: 0.3
+  buzos: 0.5, bermudas: 0.35, pantalón: 0.6, camisas: 0.3, remeras: 0.22, chombas: 0.22, camperas: 0.7, mallas: 0.15, otros: 0.3
 };
 
 // Tarifas ESTIMADAS de envío por zona y por peso total del pedido, saliendo desde CP 1847
@@ -61,7 +61,7 @@ const WA_ICON = '<svg viewBox="0 0 32 32" fill="currentColor"><path d="M16.02 3C
 const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>';
 
 const SWATCH_COLORS = {
-  buzos:"#8a6a4f", bermudas:"#5c7a63",pantalón: "#5d7a63", camisas:"#4d6a80", chombas: "#f5622f", remeras:"#a5622f", camperas:"#5b5266", mallas:"#b1483f", otros: "#a2483f"
+  buzos:"#8a6a4f", bermudas:"#5c7a63", pantalón: "#5d7a63", camisas:"#4d6a80", chombas: "#f5622f", remeras:"#a5622f", camperas:"#5b5266", mallas:"#b1483f", otros: "#a2483f"
 };
 
 const SIZE_ORDER = ["XS","S","M","L","XL","XXL","2XL","3XL"];
@@ -85,9 +85,6 @@ let query = "";
 
 function money(n){ return "$" + Number(n).toLocaleString("es-AR"); }
 
-// Convierte un link de "Compartir" de Google Drive (.../file/d/ID/view...) en un link
-// que se puede mostrar directo como imagen. Si ya es un link directo, o de otro origen,
-// lo deja igual.
 function normalizeImgUrl(url){
   if (!url) return url;
   const trimmed = url.trim();
@@ -111,9 +108,6 @@ function parseSizeStock(tallesStr){
   return out;
 }
 
-// ---- parseo de la Google Sheet publicada como CSV ----
-// Google devuelve el CSV con líneas separadas por \r\n y celdas entre comillas cuando
-// tienen comas adentro; este parser simple cubre ese caso sin depender de librerías externas.
 function parseCSV(text){
   const rows = [];
   let row = [], cell = "", inQuotes = false;
@@ -143,14 +137,14 @@ function rowsToProducts(rows){
         iName = idx("nombre"), iColor = idx("color"), iTalles = idx("talles"), iUnid = idx("unidades"),
         iOrig = idx("precio_original"), iLiq = idx("precio_liquidacion"),
         iImg = idx("imagen_url"), iImg2 = idx("imagen_url_alt"), iImgExtra = idx("imagenes_extra"),
-        iDetalles = idx("detalles"); // <-- Leemos la columna "detalles"
+        iDetalles = idx("detalles");
 
   const out = [];
   for (let r = 1; r < rows.length; r++){
     const row = rows[r];
     if (!row[iName]) continue;
     const unidades = Number(row[iUnid]) || 0;
-    if (unidades <= 0) continue; // vendido / sin stock -> no se muestra
+    if (unidades <= 0) continue; 
     const talles = (row[iTalles] || "").split("|").map(t => t.trim()).filter(Boolean);
     
     const galleryExtra = iImgExtra > -1
@@ -171,14 +165,12 @@ function rowsToProducts(rows){
       img: normalizeImgUrl(iImg > -1 ? row[iImg] : ""),
       img2: normalizeImgUrl(iImg2 > -1 ? row[iImg2] : ""),
       galleryExtra,
-      detalles: iDetalles > -1 ? (row[iDetalles] || "").trim() : "" // <-- Guardamos la descripción
+      detalles: iDetalles > -1 ? (row[iDetalles] || "").trim() : ""
     });
   }
   return out;
 }
 
-// Junta todas las fotos disponibles de un producto (principal + alternativa + extras)
-// en un solo array, sin vacíos ni duplicados, en el orden en que aparecen en la planilla.
 function getGallery(p){
   const all = [p.img, p.img2, ...(p.galleryExtra || [])];
   const seen = new Set();
@@ -192,7 +184,9 @@ function getGallery(p){
 
 async function loadProducts(){
   if (!SHEET_ID){
-    PRODUCTS = PRODUCTS_FALLBACK;
+    if (typeof PRODUCTS_FALLBACK !== "undefined") {
+      PRODUCTS = PRODUCTS_FALLBACK;
+    }
     return;
   }
   try{
@@ -204,12 +198,21 @@ async function loadProducts(){
     const products = rowsToProducts(rows);
     if (!products.length) throw new Error("La hoja no devolvió productos");
     PRODUCTS = products;
-    setSyncNote(`Envío gratis dentro de Almirante Brown en compras superiores a 50000 · Precios y disponibilidad sujetos a stock real al momento de la consulta.`);
+    setSyncNote(`Envío gratis dentro de Almirante Brown en compras superiores a $50.000 · Precios y disponibilidad sujetos a stock real al momento de la consulta.`);
   } catch (err){
     console.warn("No se pudo leer la Google Sheet, usando datos embebidos:", err);
-    PRODUCTS = PRODUCTS_FALLBACK.map(p => ({ ...p, sizeStock: p.sizeStock || parseSizeStock(p.talles.join("|")) }));
+    if (typeof PRODUCTS_FALLBACK !== "undefined") {
+      PRODUCTS = PRODUCTS_FALLBACK.map(p => ({ ...p, sizeStock: p.sizeStock || parseSizeStock(p.talles.join("|")) }));
+    }
     setSyncNote("No se pudo conectar con Google Sheets — mostrando la última copia guardada en el sitio.");
   }
+  
+  renderStats();
+  renderFilters();
+  renderGrid();
+  populateLocalidadSelect();
+  loadCart();
+  renderCart();
 }
 
 function setSyncNote(msg){
@@ -218,25 +221,29 @@ function setSyncNote(msg){
     el = document.createElement("div");
     el.id = "syncNote";
     el.className = "sync-note";
-    document.querySelector(".hero").insertAdjacentElement("afterend", el);
+    const hero = document.querySelector(".hero");
+    if (hero) hero.insertAdjacentElement("afterend", el);
   }
-  el.textContent = msg;
+  if (el) el.textContent = msg;
 }
 
 function renderStats(){
   const totalUnidades = PRODUCTS.reduce((s,p)=>s+p.unidades,0);
   const totalRefs = PRODUCTS.length;
   const el = document.getElementById("statRow");
-  el.innerHTML = `
-    <div class="stat"><div class="num">${totalRefs}</div><div class="lbl">Modelos</div></div>
-    <div class="stat"><div class="num">${totalUnidades}</div><div class="lbl">Prendas</div></div>
-    <div class="stat"><div class="num">~35%</div><div class="lbl">Off promedio</div></div>
-  `;
+  if (el) {
+    el.innerHTML = `
+      <div class="stat"><div class="num">${totalRefs}</div><div class="lbl">Modelos</div></div>
+      <div class="stat"><div class="num">${totalUnidades}</div><div class="lbl">Prendas</div></div>
+      <div class="stat"><div class="num">~35%</div><div class="lbl">Off promedio</div></div>
+    `;
+  }
 }
 
 function renderFilters(){
   const cats = [...new Map(PRODUCTS.map(p => [p.cat, p.catName])).entries()];
   const el = document.getElementById("filterRow");
+  if (!el) return;
   const chips = [["all","Todo"], ...cats];
   el.innerHTML = chips.map(([key,label]) =>
     `<button class="chip ${activeCat===key?'active':''}" data-cat="${key}">${label}</button>`
@@ -253,9 +260,9 @@ function renderFilters(){
   });
 }
 
-// ---- submenú de talle / color, una vez elegida una categoría ----
 function renderSubmenu(){
   const el = document.getElementById("submenu");
+  if (!el) return;
   if (activeCat === "all"){
     el.hidden = true;
     el.innerHTML = "";
@@ -367,22 +374,26 @@ function renderGrid(){
   const empty = document.getElementById("emptyState");
   const countLbl = document.getElementById("countLbl");
   if (countLbl) countLbl.textContent = `Mostrando ${filtered.length} de ${PRODUCTS.length}`;
+  if (!grid) return;
   if (filtered.length === 0){
-    grid.innerHTML = ""; empty.style.display = "block"; return;
+    grid.innerHTML = ""; if (empty) empty.style.display = "block"; return;
   }
-  empty.style.display = "none";
+  if (empty) empty.style.display = "none";
   grid.innerHTML = filtered.map(cardHTML).join("");
   filtered.forEach((p,i)=>{
     if (!(p.img && p.img.trim())){
-      const layerEl = grid.children[i].querySelector(".swatch .layer.primary");
+      const layerEl = grid.children[i]?.querySelector(".swatch .layer.primary");
       if (layerEl) layerEl.style.background = SWATCH_COLORS[p.cat] || "#8a7a68";
     }
   });
 }
 
-document.getElementById("searchInput").addEventListener("input", (e)=>{
-  query = e.target.value; renderGrid();
-});
+const searchInput = document.getElementById("searchInput");
+if (searchInput) {
+  searchInput.addEventListener("input", (e)=>{
+    query = e.target.value; renderGrid();
+  });
+}
 
 // ======================================================================
 // CARRITO
@@ -407,7 +418,6 @@ function addToCart(product, talle, qty){
   const existing = CART.find(c => c.key === key);
   const currentQty = existing ? existing.qty : 0;
 
-  // Verificar si ya alcanzó el máximo disponible
   if (currentQty + qty > stockForSize) {
     alert(`Solo quedan ${stockForSize} unidad(es) disponibles en talle ${talle}.`);
     return false;
@@ -461,6 +471,7 @@ function computeShipping(zoneKey, weightKg, subtotal){
 
 function populateLocalidadSelect(){
   const sel = document.getElementById("shipLocalidad");
+  if (!sel) return;
   let html = `<option value="">Elegí tu localidad</option>`;
   html += `<optgroup label="Zona sur — Almirante Brown (envío gratis desde ${money(FREE_SHIPPING_MIN)})">`;
   ALMIRANTE_BROWN_LOCALIDADES.forEach(loc => { html += `<option value="${loc}">${loc}</option>`; });
@@ -505,8 +516,10 @@ function cartItemHTML(c){
 function renderCart(){
   const count = CART.reduce((s,c) => s + c.qty, 0);
   const countEl = document.getElementById("cartCount");
-  countEl.textContent = count;
-  countEl.hidden = count === 0;
+  if (countEl) {
+    countEl.textContent = count;
+    countEl.hidden = count === 0;
+  }
 
   const headerCountEl = document.getElementById("cartHeaderCount");
   if (headerCountEl){
@@ -519,24 +532,29 @@ function renderCart(){
   const shipSection = document.getElementById("cartShipSection");
   const footer = document.getElementById("cartFooter");
 
+  if (!itemsEl) return;
+
   if (CART.length === 0){
     itemsEl.innerHTML = "";
-    emptyEl.hidden = false;
-    shipSection.hidden = true;
-    footer.hidden = true;
+    if (emptyEl) emptyEl.hidden = false;
+    if (shipSection) shipSection.hidden = true;
+    if (footer) footer.hidden = true;
     return;
   }
-  emptyEl.hidden = true;
-  shipSection.hidden = false;
-  footer.hidden = false;
+  if (emptyEl) emptyEl.hidden = true;
+  if (shipSection) shipSection.hidden = false;
+  if (footer) footer.hidden = false;
   itemsEl.innerHTML = CART.map(cartItemHTML).join("");
   refreshShippingAndTotals();
 }
 
 function refreshShippingAndTotals(){
   const subtotal = cartSubtotal();
-  document.getElementById("cartSubtotal").textContent = money(subtotal);
-  const zoneVal = document.getElementById("shipLocalidad").value;
+  const subTotalEl = document.getElementById("cartSubtotal");
+  if (subTotalEl) subTotalEl.textContent = money(subtotal);
+  
+  const shipLocEl = document.getElementById("shipLocalidad");
+  const zoneVal = shipLocEl ? shipLocEl.value : "";
   const zoneKey = zoneForLocalidad(zoneVal);
   const weight = cartWeightKg();
   const shipLineEl = document.getElementById("cartShippingLine");
@@ -544,23 +562,24 @@ function refreshShippingAndTotals(){
   let shipCost = 0;
 
   if (!zoneKey){
-    shipLineEl.textContent = "Elegí tu localidad";
-    shipResultEl.textContent = "";
+    if (shipLineEl) shipLineEl.textContent = "Elegí tu localidad";
+    if (shipResultEl) shipResultEl.textContent = "";
   } else {
     const res = computeShipping(zoneKey, weight, subtotal);
     if (res.free){
-      shipLineEl.textContent = "Gratis 🎉";
-      shipResultEl.textContent = `Envío gratis a zona sur por compra desde ${money(FREE_SHIPPING_MIN)}.`;
+      if (shipLineEl) shipLineEl.textContent = "Gratis 🎉";
+      if (shipResultEl) shipResultEl.textContent = `Envío gratis a zona sur por compra desde ${money(FREE_SHIPPING_MIN)}.`;
       shipCost = 0;
     } else {
-      shipLineEl.textContent = money(res.cost);
-      shipResultEl.textContent = zoneKey === "almirante_brown"
+      if (shipLineEl) shipLineEl.textContent = money(res.cost);
+      if (shipResultEl) shipResultEl.textContent = zoneKey === "almirante_brown"
         ? `Con ${money(FREE_SHIPPING_MIN - subtotal)} más de compra, el envío te sale gratis.`
         : `Tarifa estimada para ${res.label.toLowerCase()} (Correo Argentino desde CP 1847, Rafael Calzada).`;
       shipCost = res.cost;
     }
   }
-  document.getElementById("cartTotal").textContent = money(subtotal + shipCost);
+  const totalEl = document.getElementById("cartTotal");
+  if (totalEl) totalEl.textContent = money(subtotal + shipCost);
   updateCheckoutLink(shipCost);
 }
 
@@ -574,8 +593,8 @@ function buildOrderMessage(shipCost){
   lines.push(`Subtotal: ${money(subtotal)}`);
 
   const localidadSel = document.getElementById("shipLocalidad");
-  const localidadText = localidadSel.selectedOptions[0] ? localidadSel.selectedOptions[0].text : "";
-  const zoneKey = zoneForLocalidad(localidadSel.value);
+  const localidadText = localidadSel && localidadSel.selectedOptions[0] ? localidadSel.selectedOptions[0].text : "";
+  const zoneKey = localidadSel ? zoneForLocalidad(localidadSel.value) : null;
   if (zoneKey){
     lines.push(`Envío (${localidadText}): ${shipCost === 0 ? "GRATIS" : money(shipCost)}`);
     lines.push(`TOTAL: ${money(subtotal + shipCost)}`);
@@ -584,9 +603,9 @@ function buildOrderMessage(shipCost){
     lines.push(`TOTAL (sin envío): ${money(subtotal)}`);
   }
   lines.push("");
-  const nombre = document.getElementById("shipNombre").value.trim();
-  const telefono = document.getElementById("shipTelefono").value.trim();
-  const direccion = document.getElementById("shipDireccion").value.trim();
+  const nombre = (document.getElementById("shipNombre")?.value || "").trim();
+  const telefono = (document.getElementById("shipTelefono")?.value || "").trim();
+  const direccion = (document.getElementById("shipDireccion")?.value || "").trim();
   if (nombre) lines.push(`🙋 Nombre: ${nombre}`);
   if (telefono) lines.push(`📞 Tel: ${telefono}`);
   if (direccion || localidadText) lines.push(`📍 Dirección: ${direccion}${direccion && localidadText ? ", " : ""}${localidadText}`);
@@ -605,114 +624,115 @@ function updateCheckoutLink(shipCost){
   btn.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
 }
 
-// ---- interacción: tarjetas de producto (delegación de eventos) ----
-document.getElementById("grid").addEventListener("click", (e) => {
-  const openTrigger = e.target.closest(".swatch, .card-name-link");
-  if (openTrigger){
-    const product = PRODUCTS.find(p => String(p.id) === String(openTrigger.dataset.id));
-    if (product) openProductModal(product);
-    return;
-  }
-  const addBtn = e.target.closest(".add-cart-btn");
-  if (addBtn){
-    const card = addBtn.closest(".card");
-    const select = card.querySelector(".talle-select");
-    const qtyVal = card.querySelector(".qty-value");
-    const talle = select.value;
-    if (!talle){
-      select.classList.add("input-error");
-      select.focus();
+// ---- interacción: tarjetas de producto ----
+const gridEl = document.getElementById("grid");
+if (gridEl) {
+  gridEl.addEventListener("click", (e) => {
+    const openTrigger = e.target.closest(".swatch, .card-name-link");
+    if (openTrigger){
+      const product = PRODUCTS.find(p => String(p.id) === String(openTrigger.dataset.id));
+      if (product) openProductModal(product);
       return;
     }
-    select.classList.remove("input-error");
-    const qty = Number(qtyVal.textContent) || 1;
-    const product = PRODUCTS.find(p => String(p.id) === String(addBtn.dataset.id));
-    if (!product) return;
-    const ok = addToCart(product, talle, qty);
-    if (ok){
-      const original = addBtn.textContent;
-      addBtn.textContent = "Agregado ✓";
-      addBtn.classList.add("added");
-      setTimeout(() => { addBtn.textContent = original; addBtn.classList.remove("added"); }, 1200);
-      qtyVal.textContent = "1";
+    const addBtn = e.target.closest(".add-cart-btn");
+    if (addBtn){
+      const card = addBtn.closest(".card");
+      const select = card.querySelector(".talle-select");
+      const qtyVal = card.querySelector(".qty-value");
+      const talle = select.value;
+      if (!talle){
+        select.classList.add("input-error");
+        select.focus();
+        return;
+      }
+      select.classList.remove("input-error");
+      const qty = Number(qtyVal.textContent) || 1;
+      const product = PRODUCTS.find(p => String(p.id) === String(addBtn.dataset.id));
+      if (!product) return;
+      const ok = addToCart(product, talle, qty);
+      if (ok){
+        const original = addBtn.textContent;
+        addBtn.textContent = "Agregado ✓";
+        addBtn.classList.add("added");
+        setTimeout(() => { addBtn.textContent = original; addBtn.classList.remove("added"); }, 1200);
+        qtyVal.textContent = "1";
+      }
+      return;
     }
-    return;
-  }
-  const qtyBtn = e.target.closest(".qty-btn");
-  if (qtyBtn){
-    const card = qtyBtn.closest(".card");
-    const select = card.querySelector(".talle-select");
-    const qtyVal = card.querySelector(".qty-value");
-    const product = PRODUCTS.find(p => String(p.id) === String(select.dataset.id));
-    
-    // Obtener el stock total de ese talle
-    const maxStock = (product && select.value)
-      ? ((product.sizeStock.find(s => s.size === select.value) || {}).qty || 1)
-      : 99;
+    const qtyBtn = e.target.closest(".qty-btn");
+    if (qtyBtn){
+      const card = qtyBtn.closest(".card");
+      const select = card.querySelector(".talle-select");
+      const qtyVal = card.querySelector(".qty-value");
+      const product = PRODUCTS.find(p => String(p.id) === String(select.dataset.id));
+      
+      const maxStock = (product && select.value)
+        ? ((product.sizeStock.find(s => s.size === select.value) || {}).qty || 1)
+        : 99;
 
-    // Restar lo que el usuario YA tiene agregado en el carrito
-    const inCartQty = select.value 
-      ? (CART.find(c => c.key === cartItemKey(product.id, select.value)) || {}).qty || 0
-      : 0;
+      const inCartQty = select.value 
+        ? (CART.find(c => c.key === cartItemKey(product.id, select.value)) || {}).qty || 0
+        : 0;
 
-    const stockDisponible = Math.max(0, maxStock - inCartQty);
+      const stockDisponible = Math.max(0, maxStock - inCartQty);
 
-    let v = Number(qtyVal.textContent) || 1;
-    if (qtyBtn.classList.contains("qty-plus")) {
-      v = Math.min(v + 1, stockDisponible || 1);
-    } else {
-      v = Math.max(1, v - 1);
+      let v = Number(qtyVal.textContent) || 1;
+      if (qtyBtn.classList.contains("qty-plus")) {
+        v = Math.min(v + 1, stockDisponible || 1);
+      } else {
+        v = Math.max(1, v - 1);
+      }
+      qtyVal.textContent = v;
     }
-    qtyVal.textContent = v;
-  }
-});
+  });
 
-document.getElementById("grid").addEventListener("change", (e) => {
-  if (e.target.classList.contains("talle-select")){
-    const card = e.target.closest(".card");
-    const hasValue = Boolean(e.target.value);
-    
-    // Resetear valor a 1
-    card.querySelector(".qty-value").textContent = "1";
-    e.target.classList.remove("input-error");
+  gridEl.addEventListener("change", (e) => {
+    if (e.target.classList.contains("talle-select")){
+      const card = e.target.closest(".card");
+      const hasValue = Boolean(e.target.value);
+      
+      card.querySelector(".qty-value").textContent = "1";
+      e.target.classList.remove("input-error");
 
-    // Habilitar / Deshabilitar botones de cantidad
-    card.querySelectorAll(".qty-btn").forEach(btn => {
-      btn.disabled = !hasValue;
-    });
-  }
-});
+      card.querySelectorAll(".qty-btn").forEach(btn => {
+        btn.disabled = !hasValue;
+      });
+    }
+  });
+}
 
 // ---- interacción: ítems del carrito ----
-document.getElementById("cartItems").addEventListener("click", (e) => {
-  const item = e.target.closest(".cart-item");
-  if (!item) return;
-  const key = item.dataset.key;
-  if (e.target.closest(".cart-qty-plus")) updateCartQty(key, 1);
-  else if (e.target.closest(".cart-qty-minus")) updateCartQty(key, -1);
-  else if (e.target.closest(".cart-remove")) removeFromCart(key);
-});
+const cartItemsEl = document.getElementById("cartItems");
+if (cartItemsEl) {
+  cartItemsEl.addEventListener("click", (e) => {
+    const item = e.target.closest(".cart-item");
+    if (!item) return;
+    const key = item.dataset.key;
+    if (e.target.closest(".cart-qty-plus")) updateCartQty(key, 1);
+    else if (e.target.closest(".cart-qty-minus")) updateCartQty(key, -1);
+    else if (e.target.closest(".cart-remove")) removeFromCart(key);
+  });
+}
 
 // ---- abrir / cerrar el panel del carrito ----
 function openCart(){
-  document.getElementById("cartDrawer").classList.add("open");
-  document.getElementById("cartOverlay").classList.add("open");
+  document.getElementById("cartDrawer")?.classList.add("open");
+  document.getElementById("cartOverlay")?.classList.add("open");
   document.body.classList.add("cart-open-lock");
 }
 function closeCart(){
-  document.getElementById("cartDrawer").classList.remove("open");
-  document.getElementById("cartOverlay").classList.remove("open");
+  document.getElementById("cartDrawer")?.classList.remove("open");
+  document.getElementById("cartOverlay")?.classList.remove("open");
   document.body.classList.remove("cart-open-lock");
 }
-document.getElementById("cartBtn").addEventListener("click", openCart);
-document.getElementById("cartClose").addEventListener("click", closeCart);
-document.getElementById("cartOverlay").addEventListener("click", closeCart);
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeCart(); });
+document.getElementById("cartBtn")?.addEventListener("click", openCart);
+document.getElementById("cartClose")?.addEventListener("click", closeCart);
+document.getElementById("cartOverlay")?.addEventListener("click", closeCart);
 
 // ---- formulario de envío ----
-document.getElementById("shipLocalidad").addEventListener("change", refreshShippingAndTotals);
+document.getElementById("shipLocalidad")?.addEventListener("change", refreshShippingAndTotals);
 ["shipNombre","shipTelefono","shipDireccion"].forEach(id => {
-  document.getElementById(id).addEventListener("input", refreshShippingAndTotals);
+  document.getElementById(id)?.addEventListener("input", refreshShippingAndTotals);
 });
 
 // ======================================================================
@@ -730,142 +750,131 @@ function renderModalGallery(){
   const counterEl = document.getElementById("modalCounter");
   const thumbsEl = document.getElementById("modalThumbs");
 
+  if (!mainEl) return;
+
   if (modalGallery.length === 0){
     mainEl.style.backgroundImage = "";
     mainEl.innerHTML = ICONS[modalProduct.cat] || "";
-    mainEl.style.background = SWATCH_COLORS[modalProduct.cat] || "#8a7a68";
-  } else {
-    mainEl.style.background = "";
-    mainEl.innerHTML = "";
-    mainEl.style.backgroundImage = `url('${modalGallery[modalIndex]}')`;
+    mainEl.style.backgroundColor = SWATCH_COLORS[modalProduct.cat] || "#8a7a68";
+    if (prevBtn) prevBtn.style.display = "none";
+    if (nextBtn) nextBtn.style.display = "none";
+    if (counterEl) counterEl.textContent = "";
+    if (thumbsEl) thumbsEl.innerHTML = "";
+    return;
   }
 
-  const multi = modalGallery.length > 1;
-  prevBtn.hidden = !multi;
-  nextBtn.hidden = !multi;
-  counterEl.hidden = !multi;
-  if (multi) counterEl.textContent = `${modalIndex + 1} / ${modalGallery.length}`;
+  mainEl.innerHTML = "";
+  mainEl.style.backgroundColor = "transparent";
+  mainEl.style.backgroundImage = `url('${modalGallery[modalIndex]}')`;
 
-  thumbsEl.hidden = !multi;
-  if (multi){
-    thumbsEl.innerHTML = modalGallery.map((url, i) =>
-      `<button type="button" class="modal-thumb ${i===modalIndex?'active':''}" data-i="${i}" style="background-image:url('${url}')" aria-label="Foto ${i+1}"></button>`
-    ).join("");
+  if (modalGallery.length > 1){
+    if (prevBtn) prevBtn.style.display = "flex";
+    if (nextBtn) nextBtn.style.display = "flex";
+    if (counterEl) counterEl.textContent = `${modalIndex + 1} / ${modalGallery.length}`;
+
+    if (thumbsEl) {
+      thumbsEl.innerHTML = modalGallery.map((url, i) => `
+        <button type="button" class="modal-thumb ${i === modalIndex ? 'active' : ''}" data-idx="${i}" style="background-image:url('${url}')"></button>
+      `).join("");
+    }
   } else {
-    thumbsEl.innerHTML = "";
+    if (prevBtn) prevBtn.style.display = "none";
+    if (nextBtn) nextBtn.style.display = "none";
+    if (counterEl) counterEl.textContent = "";
+    if (thumbsEl) thumbsEl.innerHTML = "";
   }
 }
 
-function setModalIndex(i){
-  if (modalGallery.length === 0) return;
-  modalIndex = (i + modalGallery.length) % modalGallery.length;
-  renderModalGallery();
-}
-
-function openProductModal(p) {
+function openProductModal(p){
   modalProduct = p;
   modalGallery = getGallery(p);
   modalIndex = 0;
 
-  // ... (tu código para armar la galería de fotos) ...
+  const modalEl = document.getElementById("productModal");
+  const titleEl = document.getElementById("modalTitle");
+  const catEl = document.getElementById("modalCat");
+  const pricesEl = document.getElementById("modalPrices");
+  const tallesEl = document.getElementById("modalTalles");
+  const detailsEl = document.getElementById("modalDetails");
+  const waBtn = document.getElementById("modalWaBtn");
 
-  const detailsHTML = p.detalles 
-    ? `<div class="modal-details">${p.detalles}</div>` 
-    : '';
+  if (titleEl) titleEl.textContent = p.name;
+  if (catEl) catEl.textContent = p.catName + (p.color ? " · " + p.color : "");
 
-  // Dentro del HTML que inyectas en el modal, agrega 'detailsHTML' después del botón de WhatsApp:
-  modalContentEl.innerHTML = `
-    <!-- ... resto del contenido del modal ... -->
-    
-    <a class="wa-link-small" href="${waLink(p)}" target="_blank" rel="noopener">
-      Consultar por WhatsApp
-    </a>
-    
-    ${detailsHTML}
-  `;
+  if (pricesEl){
+    const off = p.orig ? Math.round((1 - p.liq/p.orig)*100) : 0;
+    pricesEl.innerHTML = `
+      <span class="price-orig">${money(p.orig)}</span>
+      <span class="price-liq">${money(p.liq)}</span>
+      <span class="off-badge">-${off}%</span>
+    `;
+  }
 
-  // ... (código para abrir/mostrar el modal) ...
+  if (tallesEl){
+    tallesEl.innerHTML = p.talles.map(t => `<span class="talle">${t}</span>`).join("");
+  }
+
+  // Muestra la descripción/detalles cargados desde Google Sheets dentro del modal
+  if (detailsEl){
+    if (p.detalles){
+      detailsEl.innerHTML = `<strong>Detalles:</strong><p>${p.detalles}</p>`;
+      detailsEl.style.display = "block";
+    } else {
+      detailsEl.innerHTML = "";
+      detailsEl.style.display = "none";
+    }
+  }
+
+  if (waBtn){
+    waBtn.href = waLink(p);
+  }
+
+  renderModalGallery();
+
+  if (modalEl){
+    modalEl.classList.add("open");
+    document.body.classList.add("modal-open-lock");
+  }
 }
 
 function closeProductModal(){
-  document.getElementById("modalOverlay").classList.remove("open");
-  document.getElementById("productModal").classList.remove("open");
-  document.body.classList.remove("modal-open-lock");
-  modalProduct = null;
+  const modalEl = document.getElementById("productModal");
+  if (modalEl){
+    modalEl.classList.remove("open");
+    document.body.classList.remove("modal-open-lock");
+  }
 }
 
-document.getElementById("modalOverlay").addEventListener("click", closeProductModal);
-document.getElementById("modalClose").addEventListener("click", closeProductModal);
-document.getElementById("modalPrev").addEventListener("click", () => setModalIndex(modalIndex - 1));
-document.getElementById("modalNext").addEventListener("click", () => setModalIndex(modalIndex + 1));
-document.getElementById("modalThumbs").addEventListener("click", (e) => {
-  const t = e.target.closest(".modal-thumb");
-  if (t) setModalIndex(Number(t.dataset.i));
+// ---- Eventos del Modal ----
+document.getElementById("modalClose")?.addEventListener("click", closeProductModal);
+document.getElementById("modalOverlay")?.addEventListener("click", closeProductModal);
+
+document.getElementById("modalPrev")?.addEventListener("click", () => {
+  if (modalGallery.length === 0) return;
+  modalIndex = (modalIndex - 1 + modalGallery.length) % modalGallery.length;
+  renderModalGallery();
 });
 
-document.getElementById("modalTalleSelect").addEventListener("change", (e) => {
-  const hasValue = Boolean(e.target.value);
-  document.getElementById("modalQtyValue").textContent = "1";
-  e.target.classList.remove("input-error");
-  document.getElementById("modalQtyMinus").disabled = !hasValue;
-  document.getElementById("modalQtyPlus").disabled = !hasValue;
+document.getElementById("modalNext")?.addEventListener("click", () => {
+  if (modalGallery.length === 0) return;
+  modalIndex = (modalIndex + 1) % modalGallery.length;
+  renderModalGallery();
 });
 
-document.getElementById("modalQtyMinus").addEventListener("click", () => {
-  const qtyVal = document.getElementById("modalQtyValue");
-  qtyVal.textContent = Math.max(1, (Number(qtyVal.textContent) || 1) - 1);
-});
-document.getElementById("modalQtyPlus").addEventListener("click", () => {
-  if (!modalProduct) return;
-  const select = document.getElementById("modalTalleSelect");
-  const qtyVal = document.getElementById("modalQtyValue");
-  const maxStock = select.value
-    ? ((modalProduct.sizeStock.find(s => s.size === select.value) || {}).qty || 1)
-    : 99;
-  const inCartQty = select.value
-    ? (CART.find(c => c.key === cartItemKey(modalProduct.id, select.value)) || {}).qty || 0
-    : 0;
-  const stockDisponible = Math.max(0, maxStock - inCartQty);
-  const v = Number(qtyVal.textContent) || 1;
-  qtyVal.textContent = Math.min(v + 1, stockDisponible || 1);
-});
-
-document.getElementById("modalAddBtn").addEventListener("click", () => {
-  if (!modalProduct) return;
-  const select = document.getElementById("modalTalleSelect");
-  const talle = select.value;
-  if (!talle){
-    select.classList.add("input-error");
-    select.focus();
-    return;
-  }
-  select.classList.remove("input-error");
-  const qty = Number(document.getElementById("modalQtyValue").textContent) || 1;
-  const ok = addToCart(modalProduct, talle, qty);
-  if (ok){
-    const btn = document.getElementById("modalAddBtn");
-    const original = btn.textContent;
-    btn.textContent = "Agregado ✓";
-    btn.classList.add("added");
-    setTimeout(() => { btn.textContent = original; btn.classList.remove("added"); }, 1200);
-    document.getElementById("modalQtyValue").textContent = "1";
+document.getElementById("modalThumbs")?.addEventListener("click", (e) => {
+  const thumb = e.target.closest(".modal-thumb");
+  if (thumb){
+    modalIndex = Number(thumb.dataset.idx);
+    renderModalGallery();
   }
 });
 
 document.addEventListener("keydown", (e) => {
-  if (!document.getElementById("productModal").classList.contains("open")) return;
-  if (e.key === "Escape") closeProductModal();
-  else if (e.key === "ArrowLeft") setModalIndex(modalIndex - 1);
-  else if (e.key === "ArrowRight") setModalIndex(modalIndex + 1);
+  if (e.key === "Escape"){
+    closeProductModal();
+    closeCart();
+  }
 });
 
-(async function init(){
-  loadCart();
-  populateLocalidadSelect();
-  await loadProducts();
-  renderStats();
-  renderFilters();
-  renderSubmenu();
-  renderGrid();
-  renderCart();
-})();
+// Inicialización de la aplicación
+loadProducts();
