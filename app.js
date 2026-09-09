@@ -350,7 +350,7 @@ function cardHTML(p){
         </div>
         <button type="button" class="add-cart-btn" data-id="${p.id}">Agregar al carrito</button>
         <a class="wa-link-small" href="${waLink(p)}" target="_blank" rel="noopener">Consultar por WhatsApp</a>
-        ${p.detalles ? `<p class="card-details">${p.detalles}</p>` : ''} 
+        } 
       </div>
     </div>
   `;
@@ -764,38 +764,29 @@ function setModalIndex(i){
   renderModalGallery();
 }
 
-function openProductModal(product){
-  modalProduct = product;
-  modalGallery = getGallery(product);
+function openProductModal(p) {
+  modalProduct = p;
+  modalGallery = getGallery(p);
   modalIndex = 0;
-  renderModalGallery();
 
-  document.getElementById("modalCat").textContent = product.catName + (product.color ? " · " + product.color : "");
-  document.getElementById("modalName").textContent = product.name;
+  // ... (tu código para armar la galería de fotos) ...
 
-  const availableSizes = product.sizeStock.filter(s => s.qty > 0);
-  const totalUnidades = availableSizes.reduce((s,x) => s+x.qty, 0);
-  document.getElementById("modalTalles").innerHTML = product.talles.map(t=>`<span class="talle">${t}</span>`).join("");
+  const detailsHTML = p.detalles 
+    ? `<div class="modal-details">${p.detalles}</div>` 
+    : '';
 
-  const off = product.orig ? Math.round((1 - product.liq/product.orig)*100) : 0;
-  document.getElementById("modalPriceOrig").textContent = money(product.orig);
-  document.getElementById("modalPriceLiq").textContent = money(product.liq);
-  document.getElementById("modalOffBadge").textContent = `-${off}%`;
-  document.getElementById("modalStockNote").textContent = totalUnidades <= 1 ? "Última unidad" : totalUnidades + " unidades en stock";
+  // Dentro del HTML que inyectas en el modal, agrega 'detailsHTML' después del botón de WhatsApp:
+  modalContentEl.innerHTML = `
+    <!-- ... resto del contenido del modal ... -->
+    
+    <a class="wa-link-small" href="${waLink(p)}" target="_blank" rel="noopener">
+      Consultar por WhatsApp
+    </a>
+    
+    ${detailsHTML}
+  `;
 
-  const select = document.getElementById("modalTalleSelect");
-  select.innerHTML = `<option value="">Talle</option>` + availableSizes.map(s => `<option value="${s.size}">${s.size}</option>`).join("");
-  select.classList.remove("input-error");
-  document.getElementById("modalQtyValue").textContent = "1";
-  document.getElementById("modalQtyMinus").disabled = true;
-  document.getElementById("modalQtyPlus").disabled = true;
-
-  document.getElementById("modalWaLink").href = waLink(product);
-
-  document.getElementById("modalOverlay").classList.add("open");
-  document.getElementById("productModal").hidden = false;
-  document.getElementById("productModal").classList.add("open");
-  document.body.classList.add("modal-open-lock");
+  // ... (código para abrir/mostrar el modal) ...
 }
 
 function closeProductModal(){
